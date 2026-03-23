@@ -6,7 +6,7 @@ FreeSynergy Apps – standalone apps that run inside the FreeSynergy Desktop she
 or as independent windows.
 
 Each app is a separate Cargo crate with its own `[[bin]]` and can run standalone
-or be embedded by `fs-shell` in the desktop.
+or be embedded by `fs-gui-workspace` in the desktop.
 
 ## Rules
 
@@ -43,7 +43,7 @@ Each app follows the Provider Pattern (OOP, Dioxus):
 - `AppContext` via `provide_context` for shared state
 - Business logic in domain structs, not in components
 - `View` trait implementations on domain objects
-- `AppShell` from `fs-shell` for consistent layout (when embedded)
+- `AppShell` from `fs-gui-workspace` for consistent layout (when embedded)
 
 ## CSS Variables Prefix
 
