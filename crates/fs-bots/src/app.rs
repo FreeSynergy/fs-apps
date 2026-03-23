@@ -53,6 +53,16 @@ impl BotSection {
     pub fn from_id(id: &str) -> Option<Self> {
         ALL_SECTIONS.iter().find(|s| s.id() == id).cloned()
     }
+
+    /// Return the corresponding `BotKind` for sections that front a specific bot type.
+    /// `None` for generic sections (Accounts, Bots, Groups).
+    pub fn bot_kind(&self) -> Option<BotKind> {
+        match self {
+            Self::Broadcast  => Some(BotKind::Broadcast),
+            Self::Gatekeeper => Some(BotKind::Gatekeeper),
+            _                => None,
+        }
+    }
 }
 
 /// Root component of the Bot Manager.
@@ -80,9 +90,6 @@ pub fn BotManagerApp() -> Element {
     let bots_sidebar_items: Vec<SidebarItem> = bot_list.iter()
         .map(|b| SidebarItem::new(b.id.clone(), b.kind.icon().to_string(), b.name.clone()))
         .collect();
-
-    let broadcast_bot  = ctx.bot_by_kind(&BotKind::Broadcast);
-    let gatekeeper_bot = ctx.bot_by_kind(&BotKind::Gatekeeper);
 
     // Signal copies for closures (Signal<T>: Copy — shares the same reactive storage)
     let bots_sig         = ctx.bots;
@@ -119,7 +126,7 @@ pub fn BotManagerApp() -> Element {
                 div {
                     style: "flex: 1; overflow: auto; padding: 20px;",
 
-                    match *active.read() {
+                    match active.read().clone() {
                         BotSection::Accounts => rsx! {
                             AccountsView {}
                         },
@@ -160,41 +167,23 @@ pub fn BotManagerApp() -> Element {
                             }
                         },
 
-                        BotSection::Broadcast => rsx! {
-                            match broadcast_bot {
-                                Some((idx, bot)) => rsx! {
-                                    crate::broadcast_view::BroadcastView {
-                                        bot,
-                                        on_update: {
-                                            let ctx = ctx.clone();
-                                            move |updated| ctx.update_bot(idx, updated)
-                                        }
-                                    }
-                                },
+                        // Broadcast and Gatekeeper: look up the bot by kind,
+                        // then dispatch to its view via BotKind::view() — adding a new
+                        // specialised section only requires a new BotSection variant +
+                        // bot_kind() mapping, no new match arm here.
+                        BotSection::Broadcast | BotSection::Gatekeeper => {
+                            let section = active.read().clone();
+                            let kind    = section.bot_kind().unwrap(); // safe: only these two reach here
+                            match ctx.bot_by_kind(&kind) {
+                                Some((idx, bot)) => {
+                                    let ctx2 = ctx.clone();
+                                    let view = bot.kind.view();
+                                    rsx! { { view.render(bot, EventHandler::new(move |updated| ctx2.update_bot(idx, updated))) } }
+                                }
                                 None => rsx! {
                                     div {
                                         style: "color: var(--fs-color-text-muted); font-size: 13px;",
-                                        "No Broadcast bot configured."
-                                    }
-                                },
-                            }
-                        },
-
-                        BotSection::Gatekeeper => rsx! {
-                            match gatekeeper_bot {
-                                Some((idx, bot)) => rsx! {
-                                    crate::gatekeeper_view::GatekeeperView {
-                                        bot,
-                                        on_update: {
-                                            let ctx = ctx.clone();
-                                            move |updated| ctx.update_bot(idx, updated)
-                                        }
-                                    }
-                                },
-                                None => rsx! {
-                                    div {
-                                        style: "color: var(--fs-color-text-muted); font-size: 13px;",
-                                        "No Gatekeeper bot configured."
+                                        "No {section.label()} bot configured."
                                     }
                                 },
                             }

@@ -16,6 +16,32 @@ fn demo_rooms() -> Vec<CachedRoom> {
     ]
 }
 
+// ── CollectionSidebarItem ──────────────────────────────────────────────────────
+
+/// Sidebar entry for a collection (or "All Rooms") — single source of truth for active/inactive style.
+#[component]
+fn CollectionSidebarItem(
+    icon:     String,
+    label:    String,
+    active:   bool,
+    on_click: EventHandler<()>,
+) -> Element {
+    let style = if active {
+        "padding: 7px 10px; border-radius: var(--fs-radius-md); cursor: pointer; \
+         background: var(--fs-color-primary); color: #fff; font-size: 13px;"
+    } else {
+        "padding: 7px 10px; border-radius: var(--fs-radius-md); cursor: pointer; \
+         color: var(--fs-color-text-primary); font-size: 13px;"
+    };
+    rsx! {
+        div {
+            style: "{style}",
+            onclick: move |_| on_click.call(()),
+            "{icon} {label}"
+        }
+    }
+}
+
 // ── RoomPredicate + RoomFilter ────────────────────────────────────────────────
 
 /// Predicate trait for filtering rooms — enables testable, composable filter logic.
@@ -64,11 +90,6 @@ pub fn GroupsView() -> Element {
     let mut new_col_desc   = use_signal(String::new);
     let mut show_new_col   = use_signal(|| false);
     let mut selected_rooms: Signal<Vec<(String, String)>> = use_signal(Vec::new);
-
-    let filtered_rooms: Vec<CachedRoom> = ctx.rooms.read().iter()
-        .filter(|r| filter.read().matches(r))
-        .cloned()
-        .collect();
 
     let mut platforms: Vec<String> = ctx.rooms.read().iter().map(|r| r.platform.clone()).collect();
     platforms.sort(); platforms.dedup();
@@ -136,41 +157,32 @@ pub fn GroupsView() -> Element {
 
                 // All Rooms entry
                 {
-                    let active      = ctx.sel_collection.read().is_none();
-                    let mut sel_col = ctx.sel_collection; // Signal: Copy
+                    let active  = ctx.sel_collection.read().is_none();
+                    let count   = ctx.rooms.read().len();
+                    let mut sel = ctx.sel_collection;
                     rsx! {
-                        div {
-                            style: if active {
-                                "padding: 7px 10px; border-radius: var(--fs-radius-md); cursor: pointer; \
-                                 background: var(--fs-color-primary); color: #fff; font-size: 13px;"
-                            } else {
-                                "padding: 7px 10px; border-radius: var(--fs-radius-md); cursor: pointer; \
-                                 color: var(--fs-color-text-primary); font-size: 13px;"
-                            },
-                            onclick: move |_| sel_col.set(None),
-                            "🏠 All Rooms ({ctx.rooms.read().len()})"
+                        CollectionSidebarItem {
+                            icon:     "🏠".to_string(),
+                            label:    format!("All Rooms ({count})"),
+                            active,
+                            on_click: move |_| sel.set(None),
                         }
                     }
                 }
 
-                for col in ctx.collections.read().clone().iter() {
+                for col in ctx.collections.read().clone() {
                     {
-                        let col    = col.clone();
-                        let active = *ctx.sel_collection.read() == Some(col.id);
-                        let col_id = col.id;
-                        let mut sel_col = ctx.sel_collection; // Signal: Copy
+                        let active  = *ctx.sel_collection.read() == Some(col.id);
+                        let col_id  = col.id;
+                        let label   = format!("{} ({})", col.name, col.members.len());
+                        let mut sel = ctx.sel_collection;
                         rsx! {
-                            div {
-                                key: "{col.id}",
-                                style: if active {
-                                    "padding: 7px 10px; border-radius: var(--fs-radius-md); cursor: pointer; \
-                                     background: var(--fs-color-primary); color: #fff; font-size: 13px;"
-                                } else {
-                                    "padding: 7px 10px; border-radius: var(--fs-radius-md); cursor: pointer; \
-                                     color: var(--fs-color-text-primary); font-size: 13px;"
-                                },
-                                onclick: move |_| sel_col.set(Some(col_id)),
-                                "📁 {col.name} ({col.members.len()})"
+                            CollectionSidebarItem {
+                                key:      "{col_id}",
+                                icon:     "📁".to_string(),
+                                label,
+                                active,
+                                on_click: move |_| sel.set(Some(col_id)),
                             }
                         }
                     }
@@ -268,20 +280,10 @@ pub fn GroupsView() -> Element {
                 // Room list
                 div { style: "flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;",
                     {
-                        let display_rooms: Vec<CachedRoom> = match *ctx.sel_collection.read() {
-                            None => filtered_rooms.clone(),
-                            Some(col_id) => {
-                                let col_members: Vec<(String, String)> = ctx.collections.read().iter()
-                                    .find(|c| c.id == col_id)
-                                    .map(|c| c.members.clone())
-                                    .unwrap_or_default();
-                                ctx.rooms.read().iter()
-                                    .filter(|r| col_members.contains(&(r.platform.clone(), r.room_id.clone())))
-                                    .filter(|r| filter.read().matches(r))
-                                    .cloned()
-                                    .collect()
-                            }
-                        };
+                        let display_rooms = ctx.rooms_for_view(
+                            *ctx.sel_collection.read(),
+                            |r| filter.read().matches(r),
+                        );
 
                         rsx! {
                             for room in display_rooms {

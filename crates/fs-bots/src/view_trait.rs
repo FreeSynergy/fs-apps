@@ -10,10 +10,9 @@ use crate::model::{BotKind, MessagingBot};
 // ── BotView ────────────────────────────────────────────────────────────────────
 
 /// Trait for bot-type-specific view rendering.
+/// Icon and label are provided by `BotKind::meta()` — no duplication here.
 pub trait BotView {
     fn render(&self, bot: MessagingBot, on_update: EventHandler<MessagingBot>) -> Element;
-    fn icon(&self)  -> &'static str;
-    fn label(&self) -> &'static str;
 }
 
 // ── BroadcastBotView ──────────────────────────────────────────────────────────
@@ -24,8 +23,6 @@ impl BotView for BroadcastBotView {
     fn render(&self, bot: MessagingBot, on_update: EventHandler<MessagingBot>) -> Element {
         rsx! { BroadcastView { bot, on_update } }
     }
-    fn icon(&self)  -> &'static str { "📢" }
-    fn label(&self) -> &'static str { "Broadcast" }
 }
 
 // ── GatekeeperBotView ─────────────────────────────────────────────────────────
@@ -36,8 +33,6 @@ impl BotView for GatekeeperBotView {
     fn render(&self, bot: MessagingBot, on_update: EventHandler<MessagingBot>) -> Element {
         rsx! { GatekeeperView { bot, on_update } }
     }
-    fn icon(&self)  -> &'static str { "🔒" }
-    fn label(&self) -> &'static str { "Gatekeeper" }
 }
 
 // ── DefaultBotView ────────────────────────────────────────────────────────────
@@ -55,8 +50,6 @@ impl BotView for DefaultBotView {
             }
         }
     }
-    fn icon(&self)  -> &'static str { "🤖" }
-    fn label(&self) -> &'static str { "Bot" }
 }
 
 // ── BotKind extension ──────────────────────────────────────────────────────────

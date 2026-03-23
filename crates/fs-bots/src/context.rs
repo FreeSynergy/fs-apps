@@ -87,6 +87,33 @@ impl GroupsContext {
         self.persist();
     }
 
+    /// Return rooms to display for the given selection and filter predicate.
+    /// Handles both "all rooms" (None) and collection-filtered views.
+    /// Keeps display logic out of the RSX block.
+    pub fn rooms_for_view(
+        &self,
+        sel_collection: Option<u32>,
+        predicate: impl Fn(&CachedRoom) -> bool,
+    ) -> Vec<CachedRoom> {
+        match sel_collection {
+            None => self.rooms.read().iter()
+                .filter(|r| predicate(r))
+                .cloned()
+                .collect(),
+            Some(col_id) => {
+                let col_members: Vec<(String, String)> = self.collections.read().iter()
+                    .find(|c| c.id == col_id)
+                    .map(|c| c.members.clone())
+                    .unwrap_or_default();
+                self.rooms.read().iter()
+                    .filter(|r| col_members.contains(&(r.platform.clone(), r.room_id.clone())))
+                    .filter(|r| predicate(r))
+                    .cloned()
+                    .collect()
+            }
+        }
+    }
+
     /// Remove selected rooms from a collection.
     pub fn remove_rooms_from_collection(&self, col_id: u32, rooms: Vec<(String, String)>) {
         let mut collections = self.collections;
