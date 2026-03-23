@@ -92,8 +92,17 @@ label_git_url  = "Git-URL"
 label_local_path = "Lokaler Pfad"
 
 [store.install]
-success = "Installation erfolgreich"
-failed  = "Installation fehlgeschlagen"
+success    = "Installation erfolgreich"
+failed     = "Installation fehlgeschlagen"
+installing = "Wird installiert…"
+
+[store.detail]
+included_packages = "Enthaltene Pakete"
+label_type        = "Typ"
+label_category    = "Kategorie"
+label_author      = "Autor"
+label_license     = "Lizenz"
+label_path        = "Pfad"
 
 [store.wizard]
 step_overview    = "Übersicht"

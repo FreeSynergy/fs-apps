@@ -98,7 +98,7 @@ pub fn ContainerBuilder() -> Element {
                                 border: none; border-radius: var(--fs-radius-md); cursor: pointer;",
                         disabled: yaml_input.read().is_empty(),
                         onclick: move |_| {
-                            match analyze_compose_yaml(&yaml_input.read()) {
+                            match ComposeAnalyzer::analyze(&yaml_input.read()) {
                                 Ok(r) => {
                                     *resource.write() = Some(r);
                                     *step.write() = BuilderStep::Review;
@@ -316,7 +316,7 @@ pub fn ContainerBuilder() -> Element {
                             onclick: move |_| {
                                 let dir = std::path::PathBuf::from(export_path.read().clone());
                                 if let Some(res) = resource.read().as_ref() {
-                                    match save_resource(res, &dir) {
+                                    match res.save_to(&dir) {
                                         Ok(p)  => *export_msg.write() = Some(format!("Saved to {}", p.display())),
                                         Err(e) => *export_msg.write() = Some(format!("Error: {e}")),
                                     }
@@ -393,207 +393,286 @@ fn VariableRow(
     }
 }
 
-// ── Compose analysis ──────────────────────────────────────────────────────────
+// ── ComposeAnalyzer ───────────────────────────────────────────────────────────
 
-fn analyze_compose_yaml(yaml: &str) -> Result<ContainerResource, String> {
-    let compose: ComposeFile = serde_yaml::from_str(yaml)
-        .map_err(|e| format!("YAML parse error: {e}"))?;
-    if compose.services.is_empty() {
-        return Err("No services found in YAML.".into());
-    }
-    // Delegate to the same logic as the CLI (but we inline a simplified version here
-    // since we don't have a shared library import path in the Desktop crate).
-    build_resource(yaml, compose)
-}
+/// Turns Docker Compose YAML into a validated `ContainerResource`.
+struct ComposeAnalyzer;
 
-fn build_resource(yaml: &str, compose: ComposeFile) -> Result<ContainerResource, String> {
-    use fs_types::resources::{
-        container::{ContainerService, NetworkDef, RoleDep},
-        meta::{ResourceMeta, ResourceType, ValidationStatus},
-    };
-
-    // Detect primary service (non-infra with a port, or first).
-    let primary_name = compose.services.iter()
-        .find(|(_, d)| !is_infra(d.image.as_deref().unwrap_or("")) && extract_port(d).is_some())
-        .or_else(|| compose.services.iter().next())
-        .map(|(n, _)| n.clone())
-        .unwrap_or_default();
-
-    let services: Vec<ContainerService> = compose.services.iter().map(|(name, def)| {
-        let (_, tag) = split_img(def.image.as_deref().unwrap_or(""));
-        ContainerService {
-            name: name.clone(),
-            image: def.image.clone().unwrap_or_default(),
-            is_main: *name == primary_name,
-            internal: is_infra(def.image.as_deref().unwrap_or("")),
-            port: extract_port(def),
-            healthcheck: def.healthcheck.as_ref().map(|_| "defined".into()),
-            version_tag: tag,
+impl ComposeAnalyzer {
+    fn analyze(yaml: &str) -> Result<ContainerResource, String> {
+        let compose: ComposeFile = serde_yml::from_str(yaml)
+            .map_err(|e| format!("YAML parse error: {e}"))?;
+        if compose.services.is_empty() {
+            return Err("No services found in YAML.".into());
         }
-    }).collect();
+        Self.build_resource(yaml, compose)
+    }
 
-    let primary_image = compose.services.get(&primary_name)
-        .and_then(|d| d.image.clone())
-        .unwrap_or_default();
-    let (img, img_tag) = split_img(&primary_image);
+    fn build_resource(&self, yaml: &str, compose: ComposeFile) -> Result<ContainerResource, String> {
+        use fs_types::resources::{
+            container::{ContainerService, NetworkDef, RoleDep},
+            meta::{ResourceMeta, ResourceType, ValidationStatus},
+        };
 
-    let roles_provided = detect_roles(&img);
-    let all_svc_names: Vec<String> = compose.services.keys().cloned().collect();
-    let mut variables: Vec<ContainerVariable> = Vec::new();
-    for (_, def) in &compose.services {
-        for var in env_vars(def) {
-            variables.push(analyze_var(&var, &all_svc_names));
+        let primary_name = self.detect_primary(&compose.services);
+        let services: Vec<ContainerService> = compose.services.iter()
+            .map(|(name, def)| {
+                let img = ImageClassifier::new(def.image.as_deref().unwrap_or(""));
+                let (_, tag) = img.split_tag();
+                ContainerService {
+                    name:       name.clone(),
+                    image:      def.image.clone().unwrap_or_default(),
+                    is_main:    *name == primary_name,
+                    internal:   img.is_infra(),
+                    port:       def.port(),
+                    healthcheck: def.healthcheck.as_ref().map(|_| "defined".into()),
+                    version_tag: tag,
+                }
+            })
+            .collect();
+
+        let primary_image = compose.services.get(&primary_name)
+            .and_then(|d| d.image.clone())
+            .unwrap_or_default();
+        let primary_img  = ImageClassifier::new(&primary_image);
+        let (_, img_tag) = primary_img.split_tag();
+
+        let roles_provided = primary_img.roles();
+        let all_svc_names: Vec<String> = compose.services.keys().cloned().collect();
+
+        let mut variables: Vec<ContainerVariable> = compose.services.values()
+            .flat_map(|def| def.env_var_names())
+            .map(|name| VarClassifier::new(&name).into_variable(&name, &all_svc_names))
+            .collect();
+        variables.dedup_by(|a, b| a.name == b.name);
+        variables.sort_by(|a, b| a.name.cmp(&b.name));
+
+        let roles_required: Vec<RoleDep> = variables.iter()
+            .filter_map(|v| v.role.clone())
+            .collect::<std::collections::HashSet<_>>()
+            .into_iter()
+            .map(|r| RoleDep { role: r, optional: false })
+            .collect();
+
+        let networks = vec![NetworkDef { name: format!("{primary_name}-backend"), external: false }];
+
+        let mut resource = ContainerResource {
+            meta: ResourceMeta {
+                id:            primary_name.replace([' ', '-'], "_").to_lowercase(),
+                name:          capitalize(&primary_name),
+                description:   format!("{} — containerized application.", capitalize(&primary_name)),
+                version:       img_tag,
+                author:        String::new(),
+                license:       "MIT".into(),
+                icon:          std::path::PathBuf::from("icon.svg"),
+                tags:          roles_provided.iter().map(|r| r.as_str().to_owned()).collect(),
+                resource_type: ResourceType::Container,
+                dependencies:  vec![],
+                signature:     None,
+                platform:      None,
+                status:        ValidationStatus::Incomplete,
+                source:        None,
+            },
+            compose_yaml:   yaml.to_owned(),
+            services,
+            roles_provided,
+            roles_required,
+            apis:           vec![],
+            variables,
+            networks,
+            volumes:        vec![],
+        };
+
+        use fs_types::resources::validator::Validate;
+        resource.validate();
+        Ok(resource)
+    }
+
+    /// Picks the primary service: a non-infra service that exposes a port, or the first one.
+    fn detect_primary(&self, services: &HashMap<String, ComposeServiceDef>) -> String {
+        services.iter()
+            .find(|(_, d)| {
+                let img = ImageClassifier::new(d.image.as_deref().unwrap_or(""));
+                !img.is_infra() && d.port().is_some()
+            })
+            .or_else(|| services.iter().next())
+            .map(|(n, _)| n.clone())
+            .unwrap_or_default()
+    }
+}
+
+// ── ImageClassifier ───────────────────────────────────────────────────────────
+
+/// Classifies a Docker image name — detects infrastructure images and roles.
+struct ImageClassifier(String); // lowercase image string
+
+/// (substring, role name) — order matters only for dedup, not priority.
+const IMAGE_ROLE_MAP: &[(&str, &str)] = &[
+    ("kanidm",    "iam"), ("keycloak",  "iam"), ("authentik",  "iam"),
+    ("forgejo",   "git"), ("gitea",     "git"), ("gitlab",     "git"),
+    ("outline",   "wiki"), ("bookstack", "wiki"),
+    ("stalwart",  "smtp"), ("postfix",   "smtp"),
+    ("element",   "chat"), ("synapse",   "chat"), ("tuwunel",   "chat"),
+    ("vikunja",   "tasks"), ("plane",    "tasks"),
+    ("openobserve", "monitoring"), ("grafana", "monitoring"),
+    ("postgres",  "database"), ("mysql",   "database"),
+    ("redis",     "cache"), ("dragonfly", "cache"),
+    ("ollama",    "llm"),
+];
+
+const INFRA_IMAGES: &[&str] = &[
+    "postgres", "mysql", "mariadb", "redis", "dragonfly", "valkey",
+    "nginx", "caddy", "traefik", "minio",
+];
+
+impl ImageClassifier {
+    fn new(image: &str) -> Self {
+        Self(image.to_lowercase())
+    }
+
+    fn is_infra(&self) -> bool {
+        INFRA_IMAGES.iter().any(|s| self.0.contains(s))
+    }
+
+    fn roles(&self) -> Vec<fs_types::resources::meta::Role> {
+        use fs_types::resources::meta::Role;
+        IMAGE_ROLE_MAP.iter()
+            .filter(|(kw, _)| self.0.contains(kw))
+            .map(|(_, role)| Role::new(*role))
+            .collect()
+    }
+
+    /// Splits `"myapp:1.2.3"` into `("myapp", "1.2.3")`.
+    fn split_tag(&self) -> (String, String) {
+        match self.0.rsplit_once(':') {
+            Some((i, t)) => (i.to_owned(), t.to_owned()),
+            None         => (self.0.clone(), "latest".to_owned()),
         }
     }
-    variables.dedup_by(|a, b| a.name == b.name);
-    let _ = &variables; // suppress type inference warning
-    variables.sort_by(|a, b| a.name.cmp(&b.name));
-
-    let roles_required: Vec<RoleDep> = variables.iter()
-        .filter_map(|v| v.role.clone())
-        .collect::<std::collections::HashSet<_>>()
-        .into_iter()
-        .map(|r| RoleDep { role: r, optional: false })
-        .collect();
-
-    let networks = vec![NetworkDef { name: format!("{primary_name}-backend"), external: false }];
-    let volumes = vec![];
-
-    let mut resource = ContainerResource {
-        meta: ResourceMeta {
-            id: primary_name.replace([' ', '-'], "_").to_lowercase(),
-            name: capitalize(&primary_name),
-            description: format!("{} — containerized application.", capitalize(&primary_name)),
-            version: img_tag,
-            author: String::new(),
-            license: "MIT".into(),
-            icon: std::path::PathBuf::from("icon.svg"),
-            tags: roles_provided.iter().map(|r| r.as_str().to_owned()).collect(),
-            resource_type: ResourceType::Container,
-            dependencies: vec![],
-            signature: None,
-            platform: None,
-            status: ValidationStatus::Incomplete,
-            source: None,
-        },
-        compose_yaml: yaml.to_owned(),
-        services,
-        roles_provided,
-        roles_required,
-        apis: vec![],
-        variables,
-        networks,
-        volumes,
-    };
-
-    use fs_types::resources::validator::Validate;
-    resource.validate();
-
-    Ok(resource)
 }
 
-fn is_infra(image: &str) -> bool {
-    let img = image.to_lowercase();
-    img.contains("postgres") || img.contains("mysql") || img.contains("mariadb")
-        || img.contains("redis") || img.contains("dragonfly") || img.contains("valkey")
-        || img.contains("nginx") || img.contains("caddy") || img.contains("traefik")
-        || img.contains("minio")
-}
+// ── VarClassifier ─────────────────────────────────────────────────────────────
 
-fn split_img(image: &str) -> (String, String) {
-    match image.rsplit_once(':') {
-        Some((i, t)) => (i.to_owned(), t.to_owned()),
-        None         => (image.to_owned(), "latest".to_owned()),
+/// Infers the semantic type and role of a container environment variable from
+/// its uppercased name.
+struct VarClassifier(String); // uppercase name
+
+/// (substring, VarType) — first match wins.
+const VAR_TYPE_MAP: &[(&str, VarType)] = &[
+    ("SECRET",   VarType::Secret),
+    ("PASSWORD", VarType::Secret),
+    ("TOKEN",    VarType::Secret),
+    ("_URL",     VarType::Url),
+    ("_URI",     VarType::Url),
+    ("_HOST",    VarType::Hostname),
+    ("_HOSTNAME",VarType::Hostname),
+    ("_PORT",    VarType::Port),
+    ("_EMAIL",   VarType::Email),
+    ("_MAIL",    VarType::Email),
+    ("ENABLE_",  VarType::Bool),
+    ("_ENABLED", VarType::Bool),
+];
+
+/// (substring, role name) — first match wins.
+const VAR_ROLE_MAP: &[(&str, &str)] = &[
+    ("OIDC",         "iam"),
+    ("KANIDM",       "iam"),
+    ("AUTH_URL",     "iam"),
+    ("SMTP",         "smtp"),
+    ("MAIL_HOST",    "smtp"),
+    ("REDIS",        "cache"),
+    ("CACHE_URL",    "cache"),
+    ("POSTGRES",     "database"),
+    ("DATABASE_URL", "database"),
+    ("DB_HOST",      "database"),
+];
+
+impl VarClassifier {
+    fn new(name: &str) -> Self {
+        Self(name.to_uppercase())
+    }
+
+    fn var_type(&self) -> VarType {
+        VAR_TYPE_MAP.iter()
+            .find(|(kw, _)| self.0.contains(kw))
+            .map(|(_, t)| t.clone())
+            .unwrap_or(VarType::String)
+    }
+
+    fn role(&self) -> Option<fs_types::resources::meta::Role> {
+        use fs_types::resources::meta::Role;
+        VAR_ROLE_MAP.iter()
+            .find(|(kw, _)| self.0.contains(kw))
+            .map(|(_, r)| Role::new(*r))
+    }
+
+    fn into_variable(
+        self,
+        original_name: &str,
+        all_svcs: &[String],
+    ) -> ContainerVariable {
+        use fs_types::resources::container::AutoSource;
+
+        let var_type = self.var_type();
+        let role     = self.role();
+        let auto_from = all_svcs.iter()
+            .find(|svc| self.0.contains(&svc.to_uppercase()))
+            .map(|svc| AutoSource::InternalService {
+                service_name: svc.clone(),
+                url_template: format!("http://{}:{{{{ port }}}}", svc),
+            });
+        let confidence = if role.is_some() { 0.8 } else { 0.4 };
+
+        ContainerVariable {
+            name:        original_name.to_owned(),
+            var_type,
+            role,
+            required:    !self.0.contains("OPTIONAL"),
+            default:     None,
+            auto_from,
+            description: original_name.replace('_', " ").to_lowercase(),
+            confidence,
+        }
     }
 }
 
-fn extract_port(def: &ComposeServiceDef) -> Option<u16> {
-    def.ports.first().and_then(|v| {
-        v.as_str().unwrap_or_default().split(':').last().and_then(|p| p.parse().ok())
-    })
-}
+// ── ComposeServiceDef helpers ─────────────────────────────────────────────────
 
-fn env_vars(def: &ComposeServiceDef) -> Vec<String> {
-    match &def.environment {
-        Some(serde_json::Value::Object(m)) => m.keys().cloned().collect(),
-        Some(serde_json::Value::Array(a))  => a.iter()
-            .filter_map(|v| v.as_str().and_then(|s| s.split_once('=').map(|(k, _)| k.to_owned())))
-            .collect(),
-        _ => vec![],
+impl ComposeServiceDef {
+    fn port(&self) -> Option<u16> {
+        self.ports.first().and_then(|v| {
+            v.as_str().unwrap_or_default().split(':').last().and_then(|p| p.parse().ok())
+        })
+    }
+
+    fn env_var_names(&self) -> Vec<String> {
+        match &self.environment {
+            Some(serde_json::Value::Object(m)) => m.keys().cloned().collect(),
+            Some(serde_json::Value::Array(a))  => a.iter()
+                .filter_map(|v| v.as_str().and_then(|s| s.split_once('=').map(|(k, _)| k.to_owned())))
+                .collect(),
+            _ => vec![],
+        }
     }
 }
 
-fn detect_roles(image: &str) -> Vec<fs_types::resources::meta::Role> {
-    use fs_types::resources::meta::Role;
-    let img = image.to_lowercase();
-    let mut roles = vec![];
-    if img.contains("kanidm") || img.contains("keycloak") || img.contains("authentik") { roles.push(Role::new("iam")); }
-    if img.contains("forgejo") || img.contains("gitea") || img.contains("gitlab") { roles.push(Role::new("git")); }
-    if img.contains("outline") || img.contains("bookstack") { roles.push(Role::new("wiki")); }
-    if img.contains("stalwart") || img.contains("postfix") { roles.push(Role::new("smtp")); }
-    if img.contains("element") || img.contains("synapse") || img.contains("tuwunel") { roles.push(Role::new("chat")); }
-    if img.contains("vikunja") || img.contains("plane") { roles.push(Role::new("tasks")); }
-    if img.contains("openobserve") || img.contains("grafana") { roles.push(Role::new("monitoring")); }
-    if img.contains("postgres") || img.contains("mysql") { roles.push(Role::new("database")); }
-    if img.contains("redis") || img.contains("dragonfly") { roles.push(Role::new("cache")); }
-    if img.contains("ollama") { roles.push(Role::new("llm")); }
-    roles
+// ── ContainerResource helpers ─────────────────────────────────────────────────
+
+trait ResourceExport {
+    fn save_to(&self, dir: &std::path::Path) -> Result<std::path::PathBuf, String>;
 }
 
-fn analyze_var(name: &str, all_svcs: &[String]) -> ContainerVariable {
-    use fs_types::resources::container::AutoSource;
-    use fs_types::resources::meta::Role;
-    let upper = name.to_uppercase();
-
-    let var_type = if upper.contains("SECRET") || upper.contains("PASSWORD") || upper.contains("TOKEN") {
-        VarType::Secret
-    } else if upper.contains("_URL") || upper.contains("_URI") {
-        VarType::Url
-    } else if upper.contains("_HOST") || upper.contains("_HOSTNAME") {
-        VarType::Hostname
-    } else if upper.contains("_PORT") {
-        VarType::Port
-    } else if upper.contains("_EMAIL") || upper.contains("_MAIL") {
-        VarType::Email
-    } else if upper.starts_with("ENABLE_") || upper.ends_with("_ENABLED") {
-        VarType::Bool
-    } else {
-        VarType::String
-    };
-
-    let role = if upper.contains("OIDC") || upper.contains("KANIDM") || upper.contains("AUTH_URL") {
-        Some(Role::new("iam"))
-    } else if upper.contains("SMTP") || upper.contains("MAIL_HOST") {
-        Some(Role::new("smtp"))
-    } else if upper.contains("REDIS") || upper.contains("CACHE_URL") {
-        Some(Role::new("cache"))
-    } else if upper.contains("POSTGRES") || upper.contains("DATABASE_URL") || upper.contains("DB_HOST") {
-        Some(Role::new("database"))
-    } else {
-        None
-    };
-
-    let auto_from = all_svcs.iter().find(|svc| {
-        let svc_u = svc.to_uppercase();
-        upper.contains(&svc_u)
-    }).map(|svc| AutoSource::InternalService {
-        service_name: svc.clone(),
-        url_template: format!("http://{}:{{{{ port }}}}", svc),
-    });
-
-    let confidence = if role.is_some() { 0.8 } else { 0.4 };
-
-    ContainerVariable {
-        name: name.to_owned(),
-        var_type,
-        role,
-        required: !upper.contains("OPTIONAL"),
-        default: None,
-        auto_from,
-        description: name.replace('_', " ").to_lowercase(),
-        confidence,
+impl ResourceExport for ContainerResource {
+    fn save_to(&self, dir: &std::path::Path) -> Result<std::path::PathBuf, String> {
+        std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+        let path = dir.join("resource.toml");
+        let toml = toml::to_string_pretty(self).map_err(|e| e.to_string())?;
+        std::fs::write(&path, toml).map_err(|e| e.to_string())?;
+        Ok(path)
     }
 }
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
 
 fn capitalize(s: &str) -> String {
     let mut chars = s.chars();
@@ -601,12 +680,4 @@ fn capitalize(s: &str) -> String {
         None    => String::new(),
         Some(c) => c.to_uppercase().collect::<String>() + chars.as_str(),
     }
-}
-
-fn save_resource(resource: &ContainerResource, dir: &std::path::Path) -> Result<std::path::PathBuf, String> {
-    std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
-    let path = dir.join("resource.toml");
-    let toml = toml::to_string_pretty(resource).map_err(|e| e.to_string())?;
-    std::fs::write(&path, toml).map_err(|e| e.to_string())?;
-    Ok(path)
 }

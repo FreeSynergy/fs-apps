@@ -194,15 +194,20 @@ pub fn StoreSettings() -> Element {
 
                 // ── Add form (appended at bottom) ───────────────────────────────
                 if *mode.read() == FormMode::Adding {
-                    RepoForm {
-                        key: "form-new",
-                        entry: form_buf.read().clone(),
-                        on_change: move |e| form_buf.set(e),
-                        on_save: move |_| {
-                            repos.write().push(form_buf.read().clone());
-                            mode.set(FormMode::Hidden);
-                        },
-                        on_cancel: move |_| mode.set(FormMode::Hidden),
+                    {
+                        let new_key = items.len();
+                        rsx! {
+                            RepoForm {
+                                key: "form-new-{new_key}",
+                                entry: form_buf.read().clone(),
+                                on_change: move |e| form_buf.set(e),
+                                on_save: move |_| {
+                                    repos.write().push(form_buf.read().clone());
+                                    mode.set(FormMode::Hidden);
+                                },
+                                on_cancel: move |_| mode.set(FormMode::Hidden),
+                            }
+                        }
                     }
                 }
             }

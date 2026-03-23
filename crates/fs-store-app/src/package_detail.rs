@@ -215,7 +215,7 @@ pub fn PackageDetail(
                                         border-radius: var(--fs-radius-md); cursor: default; \
                                         font-size: 14px; color: var(--fs-color-text-muted);",
                                 disabled: true,
-                                "⏳ Installing…"
+                                {fs_i18n::t("store.install.installing")}
                             }
                         } else {
                             button {
@@ -269,7 +269,7 @@ pub fn PackageDetail(
                             style: "font-size: 14px; font-weight: 600; \
                                     text-transform: uppercase; letter-spacing: 0.06em; \
                                     color: var(--fs-color-text-muted); margin: 0 0 12px 0;",
-                            "Included Packages"
+                            {fs_i18n::t("store.detail.included_packages")}
                         }
                         div { style: "display: flex; flex-direction: column; gap: 6px;",
                             for cap in &package.capabilities {
@@ -350,18 +350,18 @@ pub fn PackageDetail(
                         style: "background: var(--fs-color-bg-surface); \
                                 border: 1px solid var(--fs-color-border-default); \
                                 border-radius: var(--fs-radius-md); overflow: hidden;",
-                        MetaRow { label: fs_i18n::t("labels.id"),      value: package.id.clone() }
-                        MetaRow { label: fs_i18n::t("labels.version"), value: package.version.clone() }
-                        MetaRow { label: "Type".to_string(),            value: package.kind.label().to_string() }
-                        MetaRow { label: "Category".to_string(),        value: package.category.clone() }
+                        MetaRow { label: fs_i18n::t("labels.id"),                  value: package.id.clone() }
+                        MetaRow { label: fs_i18n::t("labels.version"),             value: package.version.clone() }
+                        MetaRow { label: fs_i18n::t("store.detail.label_type"),    value: package.kind.label().to_string() }
+                        MetaRow { label: fs_i18n::t("store.detail.label_category"), value: package.category.clone() }
                         if !package.author.is_empty() {
-                            MetaRow { label: "Author".to_string(), value: package.author.clone() }
+                            MetaRow { label: fs_i18n::t("store.detail.label_author"), value: package.author.clone() }
                         }
                         if !package.license.is_empty() {
-                            MetaRow { label: "License".to_string(), value: package.license.clone() }
+                            MetaRow { label: fs_i18n::t("store.detail.label_license"), value: package.license.clone() }
                         }
                         if let Some(ref path) = package.store_path {
-                            MetaRow { label: "Path".to_string(), value: path.clone() }
+                            MetaRow { label: fs_i18n::t("store.detail.label_path"), value: path.clone() }
                         }
                     }
                 }

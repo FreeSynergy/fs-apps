@@ -152,7 +152,7 @@ pub fn StoreApp() -> Element {
             let mut catalog_versions = catalog_versions.clone();
             async move {
                 if let Ok(catalog) = StoreClient::node_store()
-                    .fetch_catalog::<NodePackage>("Node", false)
+                    .fetch_catalog::<NodePackage>("node", false)
                     .await
                 {
                     catalog_versions.set(

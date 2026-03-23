@@ -274,32 +274,31 @@ fn find_local_build_binary(id: &str) -> Option<String> {
     let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
     let base = std::path::PathBuf::from(&home).join("Server");
 
-    // Map known catalog IDs (both "fs-*" prefixed and bare) → (repo title, binary name).
-    // The catalog uses "fs-{name}" IDs; older internal code used bare IDs.
+    // Map known catalog IDs → (repo dir name, binary name).
+    // Repos live at ~/Server/fs-{name}/ (kebab-case).
     let known: Option<(&str, &str)> = match id {
-        "node"    | "fs-node"                          => Some(("Node",    "fsn")),
-        "desktop" | "fs-desktop" | "store" | "fs-store" => Some(("Desktop", "fs-desktop")),
-        "init"    | "fs-init"                          => Some(("Init",    "fs-init")),
-        "browser" | "fs-browser"                       => Some(("Browser", "fs-browser")),
-        _                                               => None,
+        "node"    | "apps/fs-node"                           => Some(("fs-node",    "fsn")),
+        "desktop" | "apps/fs-desktop" | "apps/fs-store-app" => Some(("fs-desktop", "fs-desktop")),
+        "init"    | "apps/fs-init"                           => Some(("fs-init",    "fs-init")),
+        "browser" | "apps/fs-browser" | "browser/fs-browser" => Some(("fs-browser", "fs-browser")),
+        _                                                     => None,
     };
 
-    let (title, binary_name): (String, String) = if let Some((t, b)) = known {
-        (t.to_string(), b.to_string())
+    let (repo_dir, binary_name): (String, String) = if let Some((dir, bin)) = known {
+        (dir.to_string(), bin.to_string())
     } else {
-        // Strip "fs-" prefix, capitalize remainder for the repo folder name.
-        let stripped = id.strip_prefix("fs-").unwrap_or(id);
-        let cap: String = {
-            let mut c = stripped.chars();
-            match c.next() {
-                None    => String::new(),
-                Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
-            }
+        // Strip catalog namespace prefix (e.g. "apps/", "containers/"), use the last segment.
+        let slug = id.rsplit('/').next().unwrap_or(id);
+        // Ensure repo dir has "fs-" prefix.
+        let dir = if slug.starts_with("fs-") {
+            slug.to_string()
+        } else {
+            format!("fs-{slug}")
         };
-        (cap, id.to_string())
+        (dir.clone(), dir)
     };
 
-    let repo = base.join(format!("FreeSynergy.{title}"));
+    let repo = base.join(&repo_dir);
     for profile in &["release", "debug"] {
         let path = repo.join("target").join(profile).join(&binary_name);
         if path.exists() {
@@ -316,7 +315,7 @@ async fn install_language_pack(
     store_path: Option<String>,
     fs_dir:     &std::path::Path,
 ) -> Result<Option<String>, String> {
-    let base = store_path.unwrap_or_else(|| format!("shared/i18n/{}", package.id));
+    let base = store_path.unwrap_or_else(|| format!("packages/i18n/{}", package.id));
     let url  = format!("{base}/ui.toml");
     match StoreClient::node_store().fetch_raw(&url).await {
         Ok(content) => {
@@ -339,7 +338,7 @@ async fn install_theme_file(
     store_path: Option<String>,
     fs_dir:     &std::path::Path,
 ) -> Result<Option<String>, String> {
-    let base = store_path.unwrap_or_else(|| format!("shared/themes/{}", package.id));
+    let base = store_path.unwrap_or_else(|| format!("packages/themes/{}", package.id));
     let url  = format!("{base}/theme.css");
     match StoreClient::node_store().fetch_raw(&url).await {
         Ok(content) => {
@@ -367,7 +366,7 @@ async fn install_container(
     fs_dir:    &std::path::Path,
     env_vars:   &str,
 ) -> Result<Option<String>, String> {
-    let base = store_path.unwrap_or_else(|| format!("node/modules/{}", package.id));
+    let base = store_path.unwrap_or_else(|| format!("packages/containers/{}", package.id));
 
     // Try compose.yml first, then docker-compose.yml
     let compose_content = {

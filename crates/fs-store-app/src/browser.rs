@@ -49,7 +49,7 @@ pub fn resolve_icon(icon: &str) -> Option<String> {
     }
     // Relative path → prepend GitHub raw base
     Some(format!(
-        "https://raw.githubusercontent.com/FreeSynergy/Store/main/{}",
+        "https://raw.githubusercontent.com/FreeSynergy/fs-store/main/{}",
         icon
     ))
 }

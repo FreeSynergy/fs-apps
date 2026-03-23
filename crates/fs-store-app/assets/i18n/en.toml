@@ -94,8 +94,17 @@ label_git_url  = "Git URL"
 label_local_path = "Local Path"
 
 [store.install]
-success = "Installation successful"
-failed  = "Installation failed"
+success    = "Installation successful"
+failed     = "Installation failed"
+installing = "Installing…"
+
+[store.detail]
+included_packages = "Included Packages"
+label_type        = "Type"
+label_category    = "Category"
+label_author      = "Author"
+label_license     = "License"
+label_path        = "Path"
 
 [store.wizard]
 step_overview    = "Overview"

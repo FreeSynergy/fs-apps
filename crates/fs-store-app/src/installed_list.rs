@@ -218,7 +218,7 @@ fn InstalledRow(
     entry: InstalledEntry,
     on_remove: EventHandler<InstalledEntry>,
 ) -> Element {
-    let status_color = if entry.running { "var(--fs-success)" } else { "var(--fs-text-muted)" };
+    let status_color = if entry.running { "var(--fs-color-success, #22c55e)" } else { "var(--fs-color-text-muted)" };
     let status_label = if entry.running {
         fs_i18n::t("status.running")
     } else {
@@ -227,7 +227,7 @@ fn InstalledRow(
 
     rsx! {
         tr {
-            style: "border-bottom: 1px solid var(--fs-border);",
+            style: "border-bottom: 1px solid var(--fs-color-border-default);",
 
             td { style: "padding: 10px 8px; font-weight: 500; font-size: 13px;", "{entry.name}" }
             td { style: "padding: 10px 8px;",
@@ -235,7 +235,7 @@ fn InstalledRow(
             }
             td { style: "padding: 10px 8px; text-align: right;",
                 button {
-                    style: "padding: 4px 10px; background: var(--fs-error); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;",
+                    style: "padding: 4px 10px; background: var(--fs-color-error, #ef4444); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;",
                     onclick: {
                         let e = entry.clone();
                         move |_| on_remove.call(e.clone())

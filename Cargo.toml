@@ -41,7 +41,7 @@ fs-managers      = { path = "crates/fs-managers" }
 # fs-libs — shared libraries
 fs-types      = { path = "../fs-libs/fs-types" }
 fs-error      = { path = "../fs-libs/fs-error" }
-fs-i18n       = { path = "../fs-libs/fs-i18n" }
+fs-i18n       = { path = "../fs-libs/fs-i18n", features = ["dioxus"] }
 fs-components = { path = "../fs-libs/fs-components" }
 fs-store      = { path = "../fs-libs/fs-store" }
 fs-container  = { path = "../fs-libs/fs-container" }
@@ -61,7 +61,7 @@ fs-manager-ai        = { path = "../fs-managers/ai" }
 # Serde
 serde      = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
-serde_yaml = { version = "0.9" }
+serde_yml  = { version = "0.0.12" }
 toml       = { version = "1", features = ["preserve_order"] }
 
 # Async
@@ -82,7 +82,7 @@ tracing            = { version = "0.1" }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 # UI — Dioxus
-dioxus = { version = "0.6", default-features = false, features = ["macro", "html", "signals", "hooks", "launch", "mounted", "document"] }
+dioxus = { version = "0.7.3", default-features = false, features = ["macro", "html", "signals", "hooks", "launch", "mounted", "document"] }
 
 # Allocator
 mimalloc = { version = "0.1", default-features = false }
