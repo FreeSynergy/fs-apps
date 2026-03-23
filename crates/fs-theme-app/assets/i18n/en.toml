@@ -1,0 +1,8 @@
+[theme]
+title = "Theme Manager"
+
+[theme.section]
+themes = "Themes"
+colors = "Colors"
+cursor = "Cursor"
+chrome = "Window Chrome"

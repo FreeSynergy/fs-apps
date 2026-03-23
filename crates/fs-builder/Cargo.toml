@@ -1,0 +1,34 @@
+[package]
+name        = "fs-builder"
+description = "FreeSynergy Desktop – Builder: Container builder, Bridge builder, i18n editor, resource browser"
+version.workspace   = true
+edition.workspace   = true
+license.workspace   = true
+
+[lib]
+name = "fs_builder"
+path = "src/lib.rs"
+
+[[bin]]
+name = "fs-builder-ui"
+path = "src/main.rs"
+
+[features]
+default  = ["desktop"]
+desktop  = ["dioxus/desktop", "fs-components/desktop"]
+web      = ["dioxus/web",     "fs-components/web"]
+
+[dependencies]
+fs-db-desktop = { workspace = true }
+fs-components = { workspace = true }
+fs-store      = { workspace = true }
+fs-i18n       = { workspace = true }
+fs-types      = { workspace = true }
+dioxus         = { workspace = true }
+serde          = { workspace = true }
+serde_json     = { workspace = true }
+serde_yaml     = { workspace = true }
+toml           = { workspace = true }
+reqwest        = { workspace = true }
+tracing        = { workspace = true }
+tokio          = { workspace = true }

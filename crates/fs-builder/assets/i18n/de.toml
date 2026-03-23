@@ -1,0 +1,19 @@
+# fs-builder — Deutsche i18n Strings
+
+[builder]
+title = "Builder"
+
+[builder.section]
+container = "Container"
+bridge        = "Bridge"
+i18n          = "i18n-Editor"
+resources     = "Ressourcen"
+
+[builder.i18n]
+language_label   = "SPRACHE"
+no_packs         = "Keine Sprachpakete installiert. Im Store installieren."
+file_path_hint   = "Dateipfad"
+unsaved          = "● ungespeichert"
+save_btn         = "Speichern"
+no_toml_title    = "Keine ui.toml für diese Sprache gefunden."
+no_toml_hint     = "Im Store installieren oder manuell erstellen unter:"

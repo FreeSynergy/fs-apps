@@ -1,0 +1,9 @@
+[bots]
+title = "Bot-Verwaltung"
+
+[bots.section]
+accounts   = "Konten"
+bots       = "Bots"
+broadcast  = "Nachrichten"
+gatekeeper = "Türsteher"
+groups     = "Gruppen"

@@ -1,0 +1,29 @@
+[package]
+name = "fs-container-app"
+description = "FreeSynergy Desktop – Container App: container, service and bot management"
+version.workspace   = true
+edition.workspace   = true
+license.workspace   = true
+
+[lib]
+name = "fs_container_app"
+path = "src/lib.rs"
+
+[[bin]]
+name = "fs-container-app"
+path = "src/main.rs"
+
+[features]
+default  = ["desktop"]
+desktop  = ["dioxus/desktop", "fs-components/desktop"]
+web      = ["dioxus/web",     "fs-components/web"]
+
+[dependencies]
+fs-components = { workspace = true }
+fs-container  = { workspace = true }
+fs-error      = { workspace = true }
+fs-i18n       = { workspace = true }
+dioxus         = { workspace = true }
+serde          = { workspace = true }
+toml           = { workspace = true }
+tokio          = { workspace = true }

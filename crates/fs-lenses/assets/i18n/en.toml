@@ -1,0 +1,25 @@
+# fs-lenses — English i18n strings
+
+[lenses]
+title        = "Lenses"
+new_lens     = "New Lens"
+delete_lens  = "Delete"
+empty        = "No lenses yet. Create one to aggregate data from your services."
+search_hint  = "Search term or topic (e.g. 'Helfa Köln', 'Project Alpha')…"
+
+[lenses.form]
+name         = "Lens Name"
+query        = "Search Query"
+create       = "Create Lens"
+cancel       = "Cancel"
+
+[lenses.item]
+open_link    = "Open"
+no_data      = "No data available for this role."
+loading      = "Querying services…"
+role_wiki    = "Wiki"
+role_chat    = "Chat"
+role_git     = "Git"
+role_map     = "Map"
+role_tasks   = "Tasks"
+role_iam     = "IAM"

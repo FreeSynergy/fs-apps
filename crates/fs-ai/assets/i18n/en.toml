@@ -1,0 +1,12 @@
+[ai]
+title       = "AI Manager"
+engines     = "Engines"
+status      = "Status"
+model       = "Model"
+start       = "Start"
+stop        = "Stop"
+refresh     = "Refresh"
+running     = "Running"
+stopped     = "Stopped"
+error       = "Error"
+editor_hint = "Continue.dev config is written automatically on Start."

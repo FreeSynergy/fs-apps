@@ -1,0 +1,8 @@
+[theme]
+title = "Theme-Verwaltung"
+
+[theme.section]
+themes = "Themes"
+colors = "Farben"
+cursor = "Mauszeiger"
+chrome = "Fenster-Stil"

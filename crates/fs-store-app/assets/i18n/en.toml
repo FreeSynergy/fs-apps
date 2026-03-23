@@ -1,0 +1,129 @@
+# fs-store — English i18n strings
+# Loaded at startup via register_i18n(). Keys: store.*
+# Generic keys (actions.*, labels.*, status.*) come from fs-i18n built-in snippets.
+
+[store]
+title              = "Store"
+search_placeholder = "Search packages…"
+loading_catalog    = "Loading catalog…"
+unavailable        = "Store unavailable"
+offline_hint       = "Using offline cache if available. Check your internet connection."
+no_match           = "No packages match \"{search}\"."
+back_to_browser    = "Back to browser"
+
+[store.filter]
+all       = "All"
+installed = "Installed"
+available = "Available"
+updatable = "Updatable"
+
+[store.tab]
+all            = "All"
+apps           = "Apps"
+managers       = "Managers"
+containers = "Container Apps"
+languages      = "Languages"
+themes         = "Themes"
+widgets        = "Widgets"
+bots               = "Bots"
+messenger_adapters = "Messenger Adapters"
+bridges            = "Bridges"
+tasks          = "Tasks"
+bundles        = "Bundles"
+installed      = "Installed"
+updates        = "Updates"
+settings       = "Settings"
+
+[store.status]
+installed            = "Installed ✓"
+update_available     = "Update available"
+installed_via_bundle = "Part of bundle: {bundle}"
+via_bundle           = "via {bundle}"
+managed_by_bundle    = "Managed by bundle"
+
+[store.section]
+capabilities  = "Capabilities"
+package_info  = "Package Info"
+store_packages = "Store Packages"
+
+[store.section_tab]
+server  = "Server"
+apps    = "Apps"
+desktop = "Desktop"
+
+[store.sidebar]
+bundles   = "Bundles"
+server    = "Server"
+bridges   = "Bridges"
+apps      = "Apps"
+bots      = "Bots"
+themes    = "Themes"
+widgets   = "Widgets"
+cursors   = "Cursors"
+icons     = "Icons"
+languages = "Languages"
+installed = "Installed"
+updates   = "Updates"
+settings  = "Settings"
+
+[store.dialog]
+remove_title         = "Remove {name}?"
+remove_body          = "This will unregister the package and delete any downloaded files."
+remove_service_title = "Remove {name}?"
+remove_service_body  = "This will stop the service and disable its systemd unit. Data volumes will not be deleted."
+
+[store.installed]
+no_packages = "No packages installed from the Store yet."
+no_services = "No FSN services installed. Deploy a project with fsn deploy to install services."
+
+[store.updates]
+no_metadata   = "Update detection requires deployment metadata."
+run_deploy    = "Run fsn deploy to check and apply updates for all deployed services."
+catalog_count = "{n} package(s) available in the catalog."
+
+[store.settings]
+title          = "Repository Settings"
+description    = "Configure package stores to browse and install services from."
+btn_add        = "+ Add Repository"
+empty          = "No repositories configured."
+badge_primary  = "official"
+badge_disabled = "disabled"
+label_name     = "Name"
+label_url      = "URL"
+label_git_url  = "Git URL"
+label_local_path = "Local Path"
+
+[store.install]
+success = "Installation successful"
+failed  = "Installation failed"
+
+[store.wizard]
+step_overview    = "Overview"
+step_configure   = "Configure"
+step_confirm     = "Confirm"
+step_installing  = "Installing"
+step_done        = "Done"
+overview_title   = "Install {name}"
+version_type     = "Version: {version} · Type: {kind}"
+configure_title  = "Configure {name}"
+configure_language = "The language pack will be downloaded and saved locally. Select it in Settings → Language after installation."
+configure_theme  = "The theme CSS will be downloaded and saved locally. Activate it in Settings → Appearance after installation."
+configure_widget = "The widget will be registered. Add it to your desktop via Edit Desktop → Add Widget."
+configure_none   = "No additional configuration required for this package type."
+confirm_title    = "Ready to install"
+confirm_body     = "Click Install to download and register {name} v{version}."
+compose_saved_to = "The compose file will be saved to:"
+compose_container_hint = "Then fsn container install will generate the Quadlet unit and start the service."
+installing       = "Installing {name}…"
+done_title       = "{name} installed"
+done_container   = "Open Container App to start and configure the service."
+done_language    = "Select it in Settings → Language."
+done_theme       = "Activate it in Settings → Appearance."
+done_widget      = "Add it via Edit Desktop → Add Widget."
+done_generic     = "Package is ready to use."
+install_failed   = "Installation failed"
+error_body       = "Installation failed."
+env_vars_hint    = "Enter environment variables for this service (one per line, KEY=VALUE)."
+env_vars_body    = "These will be saved to .env next to the compose file. Leave values empty to fill in later."
+detecting_vars   = "Detecting variables…"
+env_tip          = "Tip: You can also edit this file later at ~/.local/share/fsn/services/<name>/.env"

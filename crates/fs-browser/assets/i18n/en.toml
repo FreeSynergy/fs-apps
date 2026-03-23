@@ -1,0 +1,36 @@
+# fs-browser — English i18n strings
+
+[browser]
+title         = "Browser"
+url_placeholder = "Enter URL or search..."
+new_tab       = "New Tab"
+close_tab     = "Close Tab"
+reload        = "Reload"
+go_back       = "Back"
+go_forward    = "Forward"
+empty_tab     = "New Tab"
+
+[browser.bookmarks]
+label    = "Bookmarks"
+add      = "Bookmark this page"
+remove   = "Remove bookmark"
+empty    = "No bookmarks yet."
+added    = "Bookmark added."
+removed  = "Bookmark removed."
+
+[browser.history]
+label  = "History"
+empty  = "No history yet."
+clear  = "Clear history"
+
+[browser.downloads]
+label     = "Downloads"
+saving    = "Saving to S3…"
+saved     = "Saved to /shared/downloads/{name}"
+error     = "Download failed: {error}"
+empty     = "No downloads yet."
+
+[browser.search_engine]
+label     = "Search Engine"
+hint      = "Used when you type a search term in the address bar."
+no_engine = "No search engine configured — please select one in the browser settings."

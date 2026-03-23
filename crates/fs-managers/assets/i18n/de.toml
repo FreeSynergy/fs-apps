@@ -1,0 +1,71 @@
+# fs-managers — German i18n strings
+
+[managers]
+title  = "Manager"
+saved  = "Übernommen."
+
+[managers.section]
+language       = "Sprache"
+theme          = "Theme"
+icons          = "Icons"
+containers = "Container-Apps"
+bots           = "Bots"
+
+[managers.language]
+title               = "Sprachmanager"
+description         = "Aktive Oberflächensprache auswählen und Datumsformate konfigurieren."
+active_label        = "Aktiv"
+subscribed_section  = "Abonniert"
+no_subscriptions    = "Keine Sprachen abonniert."
+subscribe_btn       = "+ Abonnieren"
+unsubscribe_btn     = "Abbestellen"
+set_active_btn      = "Aktivieren"
+active_badge        = "AKTIV"
+builtin_badge       = "Eingebaut"
+tab_info            = "Info"
+tab_config          = "Konfiguration"
+tab_builder         = "Übersetzen"
+name_label          = "Name"
+native_name_label   = "Eigenname"
+direction_label     = "Schreibrichtung"
+script_label        = "Schrift"
+family_label        = "Sprachfamilie"
+continent_label     = "Kontinent"
+packs_section       = "Installierte Pakete"
+no_packs            = "Keine Pakete installiert. Pakete werden aus dem Store geladen."
+pack_common         = "Gemeinsam (eingebaut)"
+download_missing    = "Fehlende Pakete herunterladen"
+formats_title       = "Datumsformate"
+date_format_label   = "Datumsformat"
+time_format_label   = "Zeitformat"
+number_format_label = "Zahlenformat"
+fallback_label      = "Fallback-Sprache"
+auto_update_label   = "Pakete automatisch aktualisieren"
+preview_label       = "Vorschau"
+builder_placeholder = "Der Übersetzungseditor wird hier verfügbar sein."
+ltr_label           = "Links nach rechts"
+rtl_label           = "Rechts nach links"
+subscribe_title     = "Sprache abonnieren"
+subscribe_hint      = "Sprache auswählen um sie zu den Abonnements hinzuzufügen."
+already_subscribed  = "Bereits abonniert"
+
+[managers.theme]
+title       = "Thememanager"
+description = "Aktives UI-Theme auswählen. Änderungen gelten für alle FreeSynergy-Programme."
+
+[managers.icons]
+title       = "Iconmanager"
+description = "Verfügbare Icon-Sets für die FreeSynergy-Oberfläche."
+no_sets     = "Keine Icon-Sets gefunden. FreeSynergy.Icons-Repository prüfen."
+sets_title  = "Icon-Sets"
+select_set  = "Icon-Set in der Sidebar auswählen."
+no_icons    = "Keine Icons entsprechen der Suche."
+
+[managers.containers]
+title       = "Container-App-Manager"
+description = "Containerisierte Anwendungen auf diesem Node verwalten."
+empty       = "Noch keine Container-Apps installiert. Im Store Apps installieren."
+
+[managers.bots]
+title       = "Bot-Manager"
+placeholder = "Bot-Verwaltung folgt demnächst."

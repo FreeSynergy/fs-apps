@@ -1,0 +1,127 @@
+# fs-store — Deutsche i18n Strings
+
+[store]
+title              = "Store"
+search_placeholder = "Pakete suchen…"
+loading_catalog    = "Katalog wird geladen…"
+unavailable        = "Store nicht verfügbar"
+offline_hint       = "Offline-Cache wird verwendet, falls vorhanden. Internetverbindung prüfen."
+no_match           = "Keine Pakete gefunden für \"{search}\"."
+back_to_browser    = "Zurück zum Browser"
+
+[store.filter]
+all       = "Alle"
+installed = "Installiert"
+available = "Verfügbar"
+updatable = "Aktualisierbar"
+
+[store.tab]
+all            = "Alle"
+apps           = "Apps"
+managers       = "Manager"
+containers = "Container-Apps"
+languages      = "Sprachen"
+themes         = "Designs"
+widgets        = "Widgets"
+bots               = "Bots"
+messenger_adapters = "Messenger-Adapter"
+bridges            = "Bridges"
+tasks          = "Aufgaben"
+bundles        = "Bundles"
+installed      = "Installiert"
+updates        = "Updates"
+settings       = "Einstellungen"
+
+[store.status]
+installed            = "Installiert ✓"
+update_available     = "Update verfügbar"
+installed_via_bundle = "Teil von Bundle: {bundle}"
+via_bundle           = "via {bundle}"
+managed_by_bundle    = "Wird vom Bundle verwaltet"
+
+[store.section]
+capabilities   = "Fähigkeiten"
+package_info   = "Paket-Info"
+store_packages = "Store-Pakete"
+
+[store.section_tab]
+server  = "Server"
+apps    = "Apps"
+desktop = "Desktop"
+
+[store.sidebar]
+bundles   = "Bundles"
+server    = "Server"
+bridges   = "Bridges"
+apps      = "Apps"
+bots      = "Bots"
+themes    = "Designs"
+widgets   = "Widgets"
+cursors   = "Mauszeiger"
+icons     = "Icons"
+languages = "Sprachen"
+installed = "Installiert"
+updates   = "Updates"
+settings  = "Einstellungen"
+
+[store.dialog]
+remove_title         = "{name} entfernen?"
+remove_body          = "Das Paket wird aus dem Registry entfernt und heruntergeladene Dateien werden gelöscht."
+remove_service_title = "{name} entfernen?"
+remove_service_body  = "Der Dienst wird gestoppt und die systemd-Unit deaktiviert. Daten-Volumes bleiben erhalten."
+
+[store.installed]
+no_packages = "Noch keine Pakete aus dem Store installiert."
+no_services = "Keine FSN-Dienste installiert. Mit fsn deploy ein Projekt deployen."
+
+[store.updates]
+no_metadata   = "Update-Erkennung erfordert Deployment-Metadaten."
+run_deploy    = "fsn deploy ausführen, um Updates zu prüfen und anzuwenden."
+catalog_count = "{n} Paket(e) im Katalog verfügbar."
+
+[store.settings]
+title          = "Repository-Einstellungen"
+description    = "Paketquellen konfigurieren, aus denen Dienste gesucht und installiert werden."
+btn_add        = "+ Repository hinzufügen"
+empty          = "Keine Repositories konfiguriert."
+badge_primary  = "offiziell"
+badge_disabled = "deaktiviert"
+label_name     = "Name"
+label_url      = "URL"
+label_git_url  = "Git-URL"
+label_local_path = "Lokaler Pfad"
+
+[store.install]
+success = "Installation erfolgreich"
+failed  = "Installation fehlgeschlagen"
+
+[store.wizard]
+step_overview    = "Übersicht"
+step_configure   = "Konfigurieren"
+step_confirm     = "Bestätigen"
+step_installing  = "Installieren"
+step_done        = "Fertig"
+overview_title   = "{name} installieren"
+version_type     = "Version: {version} · Typ: {kind}"
+configure_title  = "{name} konfigurieren"
+configure_language = "Das Sprachpaket wird heruntergeladen und lokal gespeichert. Nach der Installation unter Einstellungen → Sprache auswählen."
+configure_theme  = "Das Theme-CSS wird heruntergeladen und lokal gespeichert. Nach der Installation unter Einstellungen → Erscheinungsbild aktivieren."
+configure_widget = "Das Widget wird registriert. Über Desktop bearbeiten → Widget hinzufügen zum Desktop hinzufügen."
+configure_none   = "Für diesen Pakettyp ist keine weitere Konfiguration erforderlich."
+confirm_title    = "Bereit zur Installation"
+confirm_body     = "Auf Installieren klicken, um {name} v{version} herunterzuladen und zu registrieren."
+compose_saved_to = "Die Compose-Datei wird gespeichert unter:"
+compose_container_hint = "Anschließend generiert fsn container install die Quadlet-Unit und startet den Dienst."
+installing       = "{name} wird installiert…"
+done_title       = "{name} installiert"
+done_container   = "Container öffnen, um den Dienst zu starten und zu konfigurieren."
+done_language    = "Unter Einstellungen → Sprache auswählen."
+done_theme       = "Unter Einstellungen → Erscheinungsbild aktivieren."
+done_widget      = "Über Desktop bearbeiten → Widget hinzufügen zum Desktop hinzufügen."
+done_generic     = "Paket ist einsatzbereit."
+install_failed   = "Installation fehlgeschlagen"
+error_body       = "Installation fehlgeschlagen."
+env_vars_hint    = "Umgebungsvariablen für diesen Dienst eingeben (eine pro Zeile, KEY=VALUE)."
+env_vars_body    = "Diese werden in .env neben der Compose-Datei gespeichert. Werte können später ausgefüllt werden."
+detecting_vars   = "Variablen werden erkannt…"
+env_tip          = "Tipp: Die Datei kann später unter ~/.local/share/fsn/services/<name>/.env bearbeitet werden."

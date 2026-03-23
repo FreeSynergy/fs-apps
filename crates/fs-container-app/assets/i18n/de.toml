@@ -1,0 +1,41 @@
+# fs-container-app — Deutsche i18n Strings
+
+[container]
+title = "Container-Verwaltung"
+
+[container.section]
+installed   = "Installiert"
+install_new = "Neu installieren"
+build       = "Erstellen"
+logs        = "Logs"
+
+[container.services]
+empty        = "Noch keine Dienste installiert."
+empty_hint   = "Store öffnen, um den ersten Dienst zu installieren."
+not_found    = "Keine FSN-Dienste gefunden. Erst ein Projekt deployen."
+running_count = "{running}/{count} laufend"
+install_btn  = "Dienst installieren"
+
+[container.tab]
+config = "Konfiguration"
+module = "Modul"
+logs   = "Logs"
+
+[container.env]
+heading      = "Umgebungsvariablen"
+saved_hint   = "Gespeichert. Dienst neu starten, um die Änderungen zu übernehmen."
+restart_hint = "Nach dem Speichern den Dienst neu starten, damit die Änderungen wirksam werden."
+
+[container.logs]
+title            = "Logs: {service}"
+follow           = "Folgen"
+empty_no_service = "Einen Dienst auswählen, um seine Logs anzuzeigen."
+empty            = "Noch keine Logs für {service}."
+
+[container.build]
+title       = "Erstellen & Veröffentlichen"
+description = "docker-compose.yml einfügen, analysieren und als FreeSynergy-Paket veröffentlichen."
+yaml_label  = "docker-compose.yml"
+analyze_btn = "Analysieren"
+publish_btn = "Im Store veröffentlichen"
+placeholder_results = "Analyseergebnisse erscheinen hier"

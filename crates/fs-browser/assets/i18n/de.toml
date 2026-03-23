@@ -1,0 +1,36 @@
+# fs-browser — Deutsch i18n
+
+[browser]
+title         = "Browser"
+url_placeholder = "URL oder Suche eingeben…"
+new_tab       = "Neuer Tab"
+close_tab     = "Tab schließen"
+reload        = "Neu laden"
+go_back       = "Zurück"
+go_forward    = "Vorwärts"
+empty_tab     = "Neuer Tab"
+
+[browser.bookmarks]
+label    = "Lesezeichen"
+add      = "Seite als Lesezeichen speichern"
+remove   = "Lesezeichen entfernen"
+empty    = "Noch keine Lesezeichen."
+added    = "Lesezeichen hinzugefügt."
+removed  = "Lesezeichen entfernt."
+
+[browser.history]
+label  = "Verlauf"
+empty  = "Noch kein Verlauf."
+clear  = "Verlauf löschen"
+
+[browser.downloads]
+label     = "Downloads"
+saving    = "Wird in S3 gespeichert…"
+saved     = "Gespeichert unter /shared/downloads/{name}"
+error     = "Download fehlgeschlagen: {error}"
+empty     = "Noch keine Downloads."
+
+[browser.search_engine]
+label     = "Suchmaschine"
+hint      = "Wird verwendet, wenn Du einen Suchbegriff in die Adressleiste eingibst."
+no_engine = "Keine Suchmaschine konfiguriert — bitte in den Browser-Einstellungen auswählen."

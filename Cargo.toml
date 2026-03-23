@@ -1,0 +1,93 @@
+[workspace]
+members = [
+    # UI Apps
+    "crates/fs-store-app",
+    "crates/fs-browser",
+    "crates/fs-lenses",
+    "crates/fs-theme-app",
+    # Tools
+    "crates/fs-builder",
+    "crates/fs-tasks",
+    "crates/fs-bots",
+    "crates/fs-ai",
+    # System Apps
+    "crates/fs-container-app",
+    "crates/fs-managers",
+]
+resolver = "2"
+
+[workspace.package]
+version     = "0.1.0"
+edition     = "2021"
+license     = "MIT"
+authors     = ["FreeSynergy.Net"]
+repository  = "https://github.com/FreeSynergy/fs-apps"
+
+# ── Shared dependency versions ─────────────────────────────────────────────────
+[workspace.dependencies]
+
+# Internal app crates
+fs-store-app     = { path = "crates/fs-store-app" }
+fs-browser       = { path = "crates/fs-browser" }
+fs-lenses        = { path = "crates/fs-lenses" }
+fs-theme-app     = { path = "crates/fs-theme-app" }
+fs-builder       = { path = "crates/fs-builder" }
+fs-tasks         = { path = "crates/fs-tasks" }
+fs-bots          = { path = "crates/fs-bots" }
+fs-ai            = { path = "crates/fs-ai" }
+fs-container-app = { path = "crates/fs-container-app" }
+fs-managers      = { path = "crates/fs-managers" }
+
+# fs-libs — shared libraries
+fs-types      = { path = "../fs-libs/fs-types" }
+fs-error      = { path = "../fs-libs/fs-error" }
+fs-i18n       = { path = "../fs-libs/fs-i18n" }
+fs-components = { path = "../fs-libs/fs-components" }
+fs-store      = { path = "../fs-libs/fs-store" }
+fs-container  = { path = "../fs-libs/fs-container" }
+fs-pkg        = { path = "../fs-libs/fs-pkg" }
+
+# fs-desktop — desktop DB (shared schema layer)
+fs-db-desktop = { path = "../fs-desktop/crates/fs-db-desktop" }
+
+# fs-managers — manager backends
+fs-manager-language  = { path = "../fs-managers/language" }
+fs-manager-icons     = { path = "../fs-managers/icons" }
+fs-manager-cursor    = { path = "../fs-managers/cursor" }
+fs-manager-theme     = { path = "../fs-managers/theme" }
+fs-manager-container = { path = "../fs-managers/container" }
+fs-manager-ai        = { path = "../fs-managers/ai" }
+
+# Serde
+serde      = { version = "1", features = ["derive"] }
+serde_json = { version = "1" }
+serde_yaml = { version = "0.9" }
+toml       = { version = "1", features = ["preserve_order"] }
+
+# Async
+tokio = { version = "1", features = ["full"] }
+
+# Error handling
+anyhow    = { version = "1" }
+thiserror = { version = "2" }
+
+# HTTP
+reqwest = { version = "0.13", features = ["json", "rustls", "blocking"], default-features = false }
+
+# Time
+chrono = { version = "0.4", features = ["serde"] }
+
+# Logging
+tracing            = { version = "0.1" }
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# UI — Dioxus
+dioxus = { version = "0.6", default-features = false, features = ["macro", "html", "signals", "hooks", "launch", "mounted", "document"] }
+
+# Allocator
+mimalloc = { version = "0.1", default-features = false }
+
+# ── Local patches ─────────────────────────────────────────────────────────────
+# Keep in sync with fs-desktop patch.
+[patch.crates-io]
+dioxus-desktop = { path = "../fs-desktop/vendor/dioxus-desktop" }

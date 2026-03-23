@@ -1,0 +1,71 @@
+# fs-managers — English i18n strings
+
+[managers]
+title  = "Managers"
+saved  = "Applied."
+
+[managers.section]
+language       = "Language"
+theme          = "Theme"
+icons          = "Icons"
+containers = "Container Apps"
+bots           = "Bots"
+
+[managers.language]
+title               = "Language Manager"
+description         = "Select the active interface language and configure locale formats."
+active_label        = "Active"
+subscribed_section  = "Subscribed"
+no_subscriptions    = "No languages subscribed."
+subscribe_btn       = "+ Subscribe"
+unsubscribe_btn     = "Unsubscribe"
+set_active_btn      = "Set Active"
+active_badge        = "ACTIVE"
+builtin_badge       = "Built-in"
+tab_info            = "Info"
+tab_config          = "Config"
+tab_builder         = "Translate"
+name_label          = "Name"
+native_name_label   = "Native Name"
+direction_label     = "Direction"
+script_label        = "Script"
+family_label        = "Language Family"
+continent_label     = "Continent"
+packs_section       = "Installed Packs"
+no_packs            = "No packs installed. Packs are downloaded from the Store."
+pack_common         = "Common (built-in)"
+download_missing    = "Download missing packs"
+formats_title       = "Locale Formats"
+date_format_label   = "Date Format"
+time_format_label   = "Time Format"
+number_format_label = "Number Format"
+fallback_label      = "Fallback Language"
+auto_update_label   = "Auto-update packs"
+preview_label       = "Preview"
+builder_placeholder = "Translation editor will be available here."
+ltr_label           = "Left-to-right"
+rtl_label           = "Right-to-left"
+subscribe_title     = "Subscribe to a Language"
+subscribe_hint      = "Select a language to add it to your subscriptions."
+already_subscribed  = "Already subscribed"
+
+[managers.theme]
+title       = "Theme Manager"
+description = "Select the active UI theme. Changes apply across all FreeSynergy programs."
+
+[managers.icons]
+title       = "Icon Manager"
+description = "Available icon sets for the FreeSynergy interface."
+no_sets     = "No icon sets found. Check the FreeSynergy.Icons repository."
+sets_title  = "Icon Sets"
+select_set  = "Select an icon set from the sidebar."
+no_icons    = "No icons match your search."
+
+[managers.containers]
+title       = "Container App Manager"
+description = "Manage containerized applications running on this node."
+empty       = "No container apps installed yet. Browse the Store to install apps."
+
+[managers.bots]
+title       = "Bot Manager"
+placeholder = "Bot management is coming soon."

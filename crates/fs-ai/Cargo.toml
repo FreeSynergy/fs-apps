@@ -1,0 +1,21 @@
+[package]
+name    = "fs-ai"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+name = "fs_ai"
+path = "src/lib.rs"
+
+[features]
+default = ["desktop"]
+desktop = ["dioxus/desktop", "fs-components/desktop"]
+web     = ["dioxus/web",     "fs-components/web"]
+
+[dependencies]
+fs-manager-ai = { workspace = true }
+fs-components = { workspace = true }
+fs-i18n       = { workspace = true }
+dioxus         = { workspace = true }
+serde_json     = { workspace = true }

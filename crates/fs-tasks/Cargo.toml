@@ -1,0 +1,16 @@
+[package]
+name    = "fs-tasks"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[features]
+default = ["desktop"]
+desktop = ["dioxus/desktop"]
+web     = ["dioxus/web"]
+
+[dependencies]
+dioxus   = { workspace = true }
+serde    = { workspace = true }
+toml     = { workspace = true }
+chrono   = { workspace = true }
