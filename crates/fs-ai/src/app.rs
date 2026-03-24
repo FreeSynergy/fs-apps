@@ -86,31 +86,31 @@ pub fn AiManagerApp() -> Element {
                     "Mistral.rs"
                 }
                 p {
-                    style: "margin: 0 0 24px; font-size: 13px; color: #94a3b8;",
+                    style: "margin: 0 0 24px; font-size: 13px; color: var(--fs-color-text-muted);",
                     "High-performance LLM inference engine — OpenAI-compatible API"
                 }
 
                 // Status card
                 div {
-                    style: "background: #1e293b; border: 1px solid #334155; \
+                    style: "background: var(--fs-color-bg-surface); border: 1px solid var(--fs-color-border); \
                             border-radius: 8px; padding: 20px; margin-bottom: 20px;",
 
                     div {
                         style: "display: flex; align-items: center; gap: 12px; margin-bottom: 8px;",
-                        span { style: "font-size: 13px; font-weight: 500; color: #94a3b8;", "Status" }
+                        span { style: "font-size: 13px; font-weight: 500; color: var(--fs-color-text-muted);", "Status" }
                         StatusBadge { status: status.read().clone() }
                     }
 
                     if let EngineStatus::Running { port } = *status.read() {
                         p {
-                            style: "margin: 0; font-size: 12px; color: #94a3b8;",
+                            style: "margin: 0; font-size: 12px; color: var(--fs-color-text-muted);",
                             "Listening on http://127.0.0.1:{port}/v1  ·  Continue.dev configured ✓"
                         }
                     }
 
-                    if !make_engine(LlmModel::Qwen3_4B).is_installed() {
+                    if !ModelConfig::for_model(LlmModel::Qwen3_4B).engine().is_installed() {
                         p {
-                            style: "margin: 8px 0 0; font-size: 12px; color: #eab308;",
+                            style: "margin: 8px 0 0; font-size: 12px; color: var(--fs-color-warning);",
                             "Binary not found — install via: fsn store install mistral"
                         }
                     }
@@ -118,19 +118,19 @@ pub fn AiManagerApp() -> Element {
 
                 // Model selection
                 div {
-                    style: "background: #1e293b; border: 1px solid #334155; \
+                    style: "background: var(--fs-color-bg-surface); border: 1px solid var(--fs-color-border); \
                             border-radius: 8px; padding: 20px; margin-bottom: 20px;",
 
                     label {
                         style: "display: block; font-size: 13px; font-weight: 500; \
-                                color: #94a3b8; margin-bottom: 10px;",
+                                color: var(--fs-color-text-muted); margin-bottom: 10px;",
                         "Model"
                     }
 
                     select {
                         style: "width: 100%; padding: 9px 12px; border-radius: 6px; \
-                                background: #0c1222; border: 1px solid #334155; \
-                                color: #e2e8f0; font-size: 14px; cursor: pointer; outline: none;",
+                                background: var(--fs-color-bg-base); border: 1px solid var(--fs-color-border); \
+                                color: var(--fs-color-text-primary); font-size: 14px; cursor: pointer; outline: none;",
                         disabled: status.read().is_running(),
                         onchange: move |e: Event<FormData>| {
                             selected_model.set(LlmModel::from_hf_id(&e.value()));
@@ -150,7 +150,7 @@ pub fn AiManagerApp() -> Element {
                         if ram > 0.0 {
                             rsx! {
                                 p {
-                                    style: "margin: 10px 0 0; font-size: 12px; color: #94a3b8;",
+                                    style: "margin: 10px 0 0; font-size: 12px; color: var(--fs-color-text-muted);",
                                     "RAM after ISQ Q4K: ~{ram} GB  ·  Port: 1234"
                                 }
                             }
@@ -167,11 +167,11 @@ pub fn AiManagerApp() -> Element {
                     if !status.read().is_running() {
                         button {
                             style: "padding: 10px 24px; border-radius: 6px; border: none; \
-                                    background: #00d9ff; color: #0c1222; font-weight: 600; \
+                                    background: var(--fs-color-primary); color: var(--fs-color-bg-base); font-weight: 600; \
                                     font-size: 14px; cursor: pointer;",
                             onclick: move |_| {
                                 feedback.set(String::new());
-                                let engine = make_engine(selected_model.read().clone());
+                                let engine = ModelConfig::for_model(selected_model.read().clone()).engine();
                                 match engine.start() {
                                     Ok(()) => {
                                         let _ = engine.write_continue_config();
@@ -188,10 +188,10 @@ pub fn AiManagerApp() -> Element {
                     } else {
                         button {
                             style: "padding: 10px 24px; border-radius: 6px; border: none; \
-                                    background: #ef4444; color: #fff; font-weight: 600; \
+                                    background: var(--fs-color-error); color: var(--fs-color-text-primary); font-weight: 600; \
                                     font-size: 14px; cursor: pointer;",
                             onclick: move |_| {
-                                let engine = make_engine(selected_model.read().clone());
+                                let engine = ModelConfig::for_model(selected_model.read().clone()).engine();
                                 match engine.stop() {
                                     Ok(()) => feedback.set("Stopped.".into()),
                                     Err(e) => feedback.set(format!("Error: {e}")),
@@ -204,8 +204,8 @@ pub fn AiManagerApp() -> Element {
 
                     button {
                         style: "padding: 10px 20px; border-radius: 6px; \
-                                background: transparent; border: 1px solid #334155; \
-                                color: #94a3b8; font-size: 14px; cursor: pointer;",
+                                background: transparent; border: 1px solid var(--fs-color-border); \
+                                color: var(--fs-color-text-muted); font-size: 14px; cursor: pointer;",
                         onclick: move |_| do_refresh(),
                         "Refresh"
                     }
@@ -215,22 +215,22 @@ pub fn AiManagerApp() -> Element {
                 if !feedback.read().is_empty() {
                     div {
                         style: "padding: 12px 16px; border-radius: 6px; \
-                                background: #1e293b; border: 1px solid #334155; \
-                                font-size: 13px; color: #94a3b8;",
+                                background: var(--fs-color-bg-surface); border: 1px solid var(--fs-color-border); \
+                                font-size: 13px; color: var(--fs-color-text-muted);",
                         "{feedback}"
                     }
                 }
 
                 // Editor integration hint
                 div {
-                    style: "background: #1e293b; border: 1px solid #334155; \
+                    style: "background: var(--fs-color-bg-surface); border: 1px solid var(--fs-color-border); \
                             border-radius: 8px; padding: 16px; margin-top: 8px;",
                     p {
-                        style: "margin: 0 0 6px; font-size: 13px; font-weight: 500; color: #e2e8f0;",
+                        style: "margin: 0 0 6px; font-size: 13px; font-weight: 500; color: var(--fs-color-text-primary);",
                         "Editor Integration"
                     }
                     p {
-                        style: "margin: 0; font-size: 12px; color: #94a3b8; line-height: 1.6;",
+                        style: "margin: 0; font-size: 12px; color: var(--fs-color-text-muted); line-height: 1.6;",
                         "Continue.dev config is written to ~/.continue/config.json automatically on Start. \
                          Install the Continue extension in VSCode / VSCodium to use the local model."
                     }
@@ -245,15 +245,27 @@ pub fn AiManagerApp() -> Element {
 #[component]
 fn StatusBadge(status: EngineStatus) -> Element {
     let (label, color, bg) = match &status {
-        EngineStatus::Running { .. } => ("Running", "#22c55e", "#14532d22"),
-        EngineStatus::Stopped        => ("Stopped", "#64748b", "#1e293b"),
-        EngineStatus::Error(_)       => ("Error",   "#ef4444", "#7f1d1d22"),
+        EngineStatus::Running { .. } => (
+            "Running",
+            "var(--fs-color-success)",
+            "var(--fs-color-success-subtle)",
+        ),
+        EngineStatus::Stopped => (
+            "Stopped",
+            "var(--fs-color-text-muted)",
+            "var(--fs-color-bg-surface)",
+        ),
+        EngineStatus::Error(_) => (
+            "Error",
+            "var(--fs-color-error)",
+            "var(--fs-color-error-subtle)",
+        ),
     };
     rsx! {
         span {
             style: "padding: 3px 10px; border-radius: 12px; font-size: 12px; \
                     font-weight: 500; color: {color}; background: {bg}; \
-                    border: 1px solid {color}44;",
+                    border: 1px solid {color};",
             "{label}"
         }
     }
