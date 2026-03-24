@@ -34,6 +34,25 @@ const ICON_BRIDGE: &str = r#"<svg viewBox="0 0 24 24" fill="none" stroke="curren
 
 // ── StoreSection ─────────────────────────────────────────────────────────────
 
+/// Display properties and catalog-filter kinds for a `StoreSection` variant.
+///
+/// Single source of truth — all per-section constants live here.
+struct SectionMeta {
+    id:           &'static str,
+    icon:         &'static str,
+    i18n_key:     &'static str,
+    default_item: &'static str,
+}
+
+/// Per-sidebar-item kind mapping within a section.
+///
+/// `item_id` is the string key used in `SidebarItem`; `kinds` is the catalog
+/// filter applied when that item is active.
+struct ItemKinds {
+    item_id: &'static str,
+    kinds:   &'static [PackageKind],
+}
+
 /// The three top-level sections of the Store.
 ///
 /// Each section groups related package types and has its own sidebar navigation.
@@ -48,25 +67,57 @@ pub enum StoreSection {
     Desktop,
 }
 
-impl StoreSection {
-    pub fn id(&self) -> &'static str {
-        match self { Self::Server => "Server", Self::Apps => "Apps", Self::Desktop => "Desktop" }
-    }
+const ALL_SECTIONS: &[StoreSection] = &[
+    StoreSection::Server,
+    StoreSection::Apps,
+    StoreSection::Desktop,
+];
 
-    pub fn label(&self) -> String {
+// Per-section item→kinds tables (static, no heap allocation).
+const SERVER_ITEM_KINDS: &[ItemKinds] = &[
+    ItemKinds { item_id: "server",  kinds: &[PackageKind::Container] },
+    ItemKinds { item_id: "bridges", kinds: &[PackageKind::Bridge] },
+    ItemKinds { item_id: "bundles", kinds: &[PackageKind::Bundle] },
+];
+const APPS_ITEM_KINDS: &[ItemKinds] = &[
+    ItemKinds { item_id: "bundles",  kinds: &[PackageKind::Bundle] },
+    ItemKinds { item_id: "apps",     kinds: &[PackageKind::App, PackageKind::Manager] },
+    ItemKinds { item_id: "bots",     kinds: &[PackageKind::BotCommand, PackageKind::MessengerAdapter] },
+];
+const DESKTOP_ITEM_KINDS: &[ItemKinds] = &[
+    ItemKinds { item_id: "bundles",   kinds: &[PackageKind::Bundle] },
+    ItemKinds { item_id: "themes",    kinds: &[PackageKind::Theme] },
+    ItemKinds { item_id: "widgets",   kinds: &[PackageKind::Widget] },
+    // Cursors and Icons are Theme sub-types until dedicated PackageKinds are added.
+    ItemKinds { item_id: "cursors",   kinds: &[PackageKind::Theme] },
+    ItemKinds { item_id: "icons",     kinds: &[PackageKind::Theme] },
+    ItemKinds { item_id: "languages", kinds: &[PackageKind::Language] },
+];
+
+impl StoreSection {
+    /// Single match block — all display properties in one place.
+    fn meta(&self) -> SectionMeta {
         match self {
-            Self::Server  => fs_i18n::t("store.section_tab.server").to_string(),
-            Self::Apps    => fs_i18n::t("store.section_tab.apps").to_string(),
-            Self::Desktop => fs_i18n::t("store.section_tab.desktop").to_string(),
+            Self::Server  => SectionMeta { id: "Server",  icon: ICON_SERVER,  i18n_key: "store.section_tab.server",  default_item: "server" },
+            Self::Apps    => SectionMeta { id: "Apps",    icon: ICON_APPS,    i18n_key: "store.section_tab.apps",    default_item: "apps"   },
+            Self::Desktop => SectionMeta { id: "Desktop", icon: ICON_DESKTOP, i18n_key: "store.section_tab.desktop", default_item: "themes" },
         }
     }
 
-    pub fn icon(&self) -> &'static str {
-        match self { Self::Server => ICON_SERVER, Self::Apps => ICON_APPS, Self::Desktop => ICON_DESKTOP }
-    }
+    pub fn id(&self)   -> &'static str { self.meta().id }
+    pub fn icon(&self) -> &'static str { self.meta().icon }
+    pub fn label(&self) -> String      { fs_i18n::t(self.meta().i18n_key).to_string() }
 
     pub fn from_id(id: &str) -> Self {
-        match id { "Apps" => Self::Apps, "Desktop" => Self::Desktop, _ => Self::Server }
+        ALL_SECTIONS.iter()
+            .find(|s| s.id() == id)
+            .cloned()
+            .unwrap_or(Self::Server)
+    }
+
+    /// Default sidebar item ID for this section.
+    pub fn default_item(&self) -> &'static str {
+        self.meta().default_item
     }
 
     /// Sidebar items for this section (excludes the pinned Settings entry).
@@ -77,46 +128,38 @@ impl StoreSection {
                 SidebarItem::new("bridges", ICON_BRIDGE,  fs_i18n::t("store.sidebar.bridges")),
             ],
             Self::Apps => vec![
-                SidebarItem::new("bundles",  ICON_BUNDLE, fs_i18n::t("store.sidebar.bundles")),
-                SidebarItem::new("apps",     ICON_APPS,   fs_i18n::t("store.sidebar.apps")),
-                SidebarItem::new("bots",     ICON_BOT,    fs_i18n::t("store.sidebar.bots")),
-                SidebarItem::new("installed",ICON_INSTALLED, fs_i18n::t("store.sidebar.installed")),
-                SidebarItem::new("updates",  ICON_UPDATES, fs_i18n::t("store.sidebar.updates")),
+                SidebarItem::new("bundles",   ICON_BUNDLE,    fs_i18n::t("store.sidebar.bundles")),
+                SidebarItem::new("apps",      ICON_APPS,      fs_i18n::t("store.sidebar.apps")),
+                SidebarItem::new("bots",      ICON_BOT,       fs_i18n::t("store.sidebar.bots")),
+                SidebarItem::new("installed", ICON_INSTALLED, fs_i18n::t("store.sidebar.installed")),
+                SidebarItem::new("updates",   ICON_UPDATES,   fs_i18n::t("store.sidebar.updates")),
             ],
             Self::Desktop => vec![
-                SidebarItem::new("themes",   ICON_THEME,   fs_i18n::t("store.sidebar.themes")),
-                SidebarItem::new("widgets",  ICON_WIDGET,  fs_i18n::t("store.sidebar.widgets")),
-                SidebarItem::new("cursors",  ICON_CURSOR,  fs_i18n::t("store.sidebar.cursors")),
-                SidebarItem::new("icons",    ICON_ICONS,   fs_i18n::t("store.sidebar.icons")),
-                SidebarItem::new("languages",ICON_LANG,    fs_i18n::t("store.sidebar.languages")),
-                SidebarItem::new("installed",ICON_INSTALLED, fs_i18n::t("store.sidebar.installed")),
-                SidebarItem::new("updates",  ICON_UPDATES, fs_i18n::t("store.sidebar.updates")),
+                SidebarItem::new("themes",    ICON_THEME,     fs_i18n::t("store.sidebar.themes")),
+                SidebarItem::new("widgets",   ICON_WIDGET,    fs_i18n::t("store.sidebar.widgets")),
+                SidebarItem::new("cursors",   ICON_CURSOR,    fs_i18n::t("store.sidebar.cursors")),
+                SidebarItem::new("icons",     ICON_ICONS,     fs_i18n::t("store.sidebar.icons")),
+                SidebarItem::new("languages", ICON_LANG,      fs_i18n::t("store.sidebar.languages")),
+                SidebarItem::new("installed", ICON_INSTALLED, fs_i18n::t("store.sidebar.installed")),
+                SidebarItem::new("updates",   ICON_UPDATES,   fs_i18n::t("store.sidebar.updates")),
             ],
         }
-    }
-
-    /// Default sidebar item ID for this section.
-    pub fn default_item(&self) -> &'static str {
-        match self { Self::Server => "server", Self::Apps => "apps", Self::Desktop => "themes" }
     }
 
     /// Map a sidebar item ID to the PackageKind filter for this section.
-    /// Returns `None` (show all) for items that cover all kinds.
+    ///
+    /// Looks up the item in the section's static `ItemKinds` table.
+    /// Returns an empty vec (show all) for items not listed (e.g. "installed", "updates").
     pub fn kinds_for(&self, item_id: &str) -> Vec<PackageKind> {
-        match (self, item_id) {
-            (_, "bundles")    => vec![PackageKind::Bundle],
-            (Self::Server, "server")   => vec![PackageKind::Container],
-            (Self::Server, "bridges")  => vec![PackageKind::Bridge],
-            (Self::Apps, "apps")       => vec![PackageKind::App, PackageKind::Manager],
-            (Self::Apps, "bots")       => vec![PackageKind::BotCommand, PackageKind::MessengerAdapter],
-            (Self::Desktop, "themes")  => vec![PackageKind::Theme],
-            (Self::Desktop, "widgets") => vec![PackageKind::Widget],
-            // Cursors and Icons are Theme sub-types until dedicated PackageKinds are added.
-            (Self::Desktop, "cursors") => vec![PackageKind::Theme],
-            (Self::Desktop, "icons")   => vec![PackageKind::Theme],
-            (Self::Desktop, "languages") => vec![PackageKind::Language],
-            _ => vec![],
-        }
+        let table: &[ItemKinds] = match self {
+            Self::Server  => SERVER_ITEM_KINDS,
+            Self::Apps    => APPS_ITEM_KINDS,
+            Self::Desktop => DESKTOP_ITEM_KINDS,
+        };
+        table.iter()
+            .find(|e| e.item_id == item_id)
+            .map(|e| e.kinds.to_vec())
+            .unwrap_or_default()
     }
 }
 
