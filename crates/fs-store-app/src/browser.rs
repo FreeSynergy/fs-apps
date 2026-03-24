@@ -2,7 +2,7 @@
 use dioxus::prelude::*;
 use fs_db_desktop::package_registry::PackageRegistry;
 use fs_components::{LoadingOverlay, SpinnerSize};
-use fs_store::{Catalog, StoreClient};
+use fs_store::{Catalog, LocaleEntry, StoreClient};
 
 use crate::install_wizard::do_install;
 use crate::node_package::{NodePackage, PackageKind};
@@ -249,65 +249,92 @@ pub fn PackageBrowser(
 }
 
 
-fn catalog_to_entries(catalog: Catalog<NodePackage>) -> Vec<PackageEntry> {
-    let installed_pkgs = PackageRegistry::load();
-    let installed_map: std::collections::HashMap<String, Option<String>> = installed_pkgs
-        .into_iter()
-        .map(|p| (p.id, p.installed_by))
-        .collect();
+impl PackageEntry {
+    /// Build a `PackageEntry` from a `NodePackage` catalog item.
+    ///
+    /// `installed_map` maps package IDs to their `installed_by` bundle ID (if any).
+    fn from_node_package(
+        pkg: NodePackage,
+        installed_map: &std::collections::HashMap<String, Option<String>>,
+    ) -> Self {
+        let installed    = installed_map.contains_key(&pkg.id);
+        let installed_by = installed_map.get(&pkg.id).and_then(|v| v.clone());
+        let icon         = pkg.icon.and_then(|i| resolve_icon(&i));
+        PackageEntry {
+            id:               pkg.id,
+            name:             pkg.name,
+            description:      pkg.description,
+            version:          pkg.version,
+            category:         pkg.category,
+            kind:             pkg.kind,
+            capabilities:     pkg.capabilities,
+            tags:             pkg.tags,
+            icon,
+            store_path:       pkg.path,
+            installed,
+            update_available: false,
+            license:          pkg.license,
+            author:           pkg.author,
+            installed_by,
+        }
+    }
 
-    let mut entries: Vec<PackageEntry> = catalog
-        .packages
-        .into_iter()
-        .map(|p| {
-            let installed    = installed_map.contains_key(&p.id);
-            let installed_by = installed_map.get(&p.id).and_then(|v| v.clone());
-            let icon         = p.icon.and_then(|i| resolve_icon(&i));
-            PackageEntry {
-                id:               p.id,
-                name:             p.name,
-                description:      p.description,
-                version:          p.version,
-                category:         p.category,
-                kind:             p.kind,
-                capabilities:     p.capabilities,
-                tags:             p.tags,
-                icon,
-                store_path:       p.path,
-                installed,
-                update_available: false,
-                license:          p.license,
-                author:           p.author,
-                installed_by,
-            }
-        })
-        .collect();
-
-    // Add locales as Language packages
-    for locale in catalog.locales {
-        let installed    = installed_map.contains_key(&locale.code)
-            || BUILTIN_LANG_CODES.contains(&locale.code.as_str());
-        let installed_by = installed_map.get(&locale.code).and_then(|v| v.clone());
-        entries.push(PackageEntry {
-            id:               locale.code.clone(),
+    /// Build a `PackageEntry` from a catalog `LocaleEntry`.
+    ///
+    /// Locale entries are surfaced as `PackageKind::Language` packages.
+    /// `installed_map` maps locale IDs to their `installed_by` bundle ID (if any).
+    /// `builtin_codes` lists locale IDs that are always considered installed.
+    fn from_locale_entry(
+        locale: LocaleEntry,
+        installed_map: &std::collections::HashMap<String, Option<String>>,
+        builtin_codes: &[&str],
+    ) -> Self {
+        let installed    = installed_map.contains_key(&locale.id)
+            || builtin_codes.contains(&locale.id.as_str());
+        let installed_by = installed_map.get(&locale.id).and_then(|v| v.clone());
+        PackageEntry {
+            id:               locale.id.clone(),
             name:             locale.name.clone(),
-            description:      format!(
-                "{} language pack · {}% complete",
-                locale.name, locale.completeness
-            ),
-            version:          locale.version,
+            description:      format!("{} language pack", locale.name),
+            version:          locale.version.unwrap_or_default(),
             category:         "i18n.language".to_string(),
             kind:             PackageKind::Language,
             capabilities:     vec![],
-            tags:             vec!["language".to_string(), locale.direction],
-            icon:             locale.icon.and_then(|i| resolve_icon(&i)),
-            store_path:       locale.path,
+            tags:             vec!["language".to_string()],
+            icon:             None,
+            store_path:       locale.url,
             installed,
             update_available: false,
             license:          "MIT".to_string(),
             author:           "Kal El".to_string(),
             installed_by,
-        });
+        }
+    }
+}
+
+/// Convert a full catalog into a flat list of `PackageEntry` values.
+///
+/// Builds an installed-package map once, then delegates per-item construction
+/// to `PackageEntry::from_node_package` and `PackageEntry::from_locale_entry`.
+fn catalog_to_entries(catalog: Catalog<NodePackage>) -> Vec<PackageEntry> {
+    let installed_map: std::collections::HashMap<String, Option<String>> =
+        PackageRegistry::load()
+            .into_iter()
+            .map(|p| (p.id, p.installed_by))
+            .collect();
+
+    let mut entries: Vec<PackageEntry> = catalog
+        .packages
+        .into_iter()
+        .map(|p| PackageEntry::from_node_package(p, &installed_map))
+        .collect();
+
+    for locale in catalog.locales {
+        entries.push(PackageEntry::from_locale_entry(
+            locale,
+            &installed_map,
+            BUILTIN_LANG_CODES,
+        ));
     }
 
     entries

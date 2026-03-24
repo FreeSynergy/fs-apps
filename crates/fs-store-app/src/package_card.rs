@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::node_package::PackageKind;
 
-/// A package entry from the FSN store.
+/// A package entry from the FS store.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PackageEntry {
     pub id: String,
@@ -27,6 +27,40 @@ pub struct PackageEntry {
     /// Set if this package was installed as a member of a bundle (contains the bundle ID).
     #[serde(default)]
     pub installed_by: Option<String>,
+}
+
+/// Classifies the primary action available for a package in the current context.
+///
+/// Used to keep RSX declarative — the component matches on this instead of
+/// evaluating nested `installed_by / installed / update_available` conditions inline.
+#[derive(Clone, Debug, PartialEq)]
+pub enum ActionState {
+    /// Package is managed by a bundle — cannot be installed or removed individually.
+    ManagedByBundle,
+    /// An update is available and ready to apply.
+    UpdateAvailable,
+    /// Package is installed and up-to-date; can be reinstalled or removed.
+    Reinstall,
+    /// Package is not installed.
+    Install,
+}
+
+impl PackageEntry {
+    /// Determine the primary action state for this entry.
+    ///
+    /// The result drives which button group the card renders without any
+    /// inline condition chains in the RSX template.
+    pub fn action_state(&self) -> ActionState {
+        if self.installed_by.is_some() {
+            ActionState::ManagedByBundle
+        } else if self.installed && self.update_available {
+            ActionState::UpdateAvailable
+        } else if self.installed {
+            ActionState::Reinstall
+        } else {
+            ActionState::Install
+        }
+    }
 }
 
 use crate::missing_icon::MissingIcon;
@@ -185,18 +219,18 @@ pub fn PackageCard(
                     {fs_i18n::t("actions.details")}
                 }
 
-                // Action area — bundle-managed packages cannot be installed/removed individually
-                if package.installed_by.is_some() {
-                    span {
-                        style: "flex: 1; padding: 8px; font-size: 12px; text-align: center; \
-                                color: var(--fs-color-text-muted); \
-                                border: 1px solid var(--fs-color-border-default); \
-                                border-radius: var(--fs-radius-md);",
-                        {fs_i18n::t("store.status.managed_by_bundle")}
-                    }
-                } else if package.installed {
-                    if package.update_available {
-                        // Update button
+                // Action area — driven by ActionState, no inline condition chains.
+                match package.action_state() {
+                    ActionState::ManagedByBundle => rsx! {
+                        span {
+                            style: "flex: 1; padding: 8px; font-size: 12px; text-align: center; \
+                                    color: var(--fs-color-text-muted); \
+                                    border: 1px solid var(--fs-color-border-default); \
+                                    border-radius: var(--fs-radius-md);",
+                            {fs_i18n::t("store.status.managed_by_bundle")}
+                        }
+                    },
+                    ActionState::UpdateAvailable => rsx! {
                         button {
                             style: "flex: 1; padding: 8px; background: var(--fs-color-warning, #f59e0b); \
                                     color: white; border: none; \
@@ -207,7 +241,8 @@ pub fn PackageCard(
                             },
                             {fs_i18n::t("store.status.update_available")}
                         }
-                    } else {
+                    },
+                    ActionState::Reinstall => rsx! {
                         // Reinstall | ▾ split button
                         div {
                             style: "flex: 1; display: flex; position: relative;",
@@ -268,19 +303,19 @@ pub fn PackageCard(
                                 }
                             }
                         }
-                    }
-                } else {
-                    // Install button
-                    button {
-                        style: "flex: 1; padding: 8px; background: var(--fs-color-primary); \
-                                color: white; border: none; \
-                                border-radius: var(--fs-radius-md); cursor: pointer; font-size: 13px;",
-                        onclick: move |evt: MouseEvent| {
-                            evt.stop_propagation();
-                            if let Some(ref h) = on_install { h.call(()); }
-                        },
-                        {fs_i18n::t("actions.install")}
-                    }
+                    },
+                    ActionState::Install => rsx! {
+                        button {
+                            style: "flex: 1; padding: 8px; background: var(--fs-color-primary); \
+                                    color: white; border: none; \
+                                    border-radius: var(--fs-radius-md); cursor: pointer; font-size: 13px;",
+                            onclick: move |evt: MouseEvent| {
+                                evt.stop_propagation();
+                                if let Some(ref h) = on_install { h.call(()); }
+                            },
+                            {fs_i18n::t("actions.install")}
+                        }
+                    },
                 }
             }
         }
