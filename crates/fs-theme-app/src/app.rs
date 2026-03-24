@@ -17,43 +17,11 @@ pub enum ThemeSection {
     Chrome,
 }
 
-impl ThemeSection {
-    pub fn id(&self) -> &str {
-        match self {
-            Self::Themes => "themes",
-            Self::Colors => "colors",
-            Self::Cursor => "cursor",
-            Self::Chrome => "chrome",
-        }
-    }
-
-    pub fn label(&self) -> String {
-        match self {
-            Self::Themes => fs_i18n::t("theme.section.themes").to_string(),
-            Self::Colors => fs_i18n::t("theme.section.colors").to_string(),
-            Self::Cursor => fs_i18n::t("theme.section.cursor").to_string(),
-            Self::Chrome => fs_i18n::t("theme.section.chrome").to_string(),
-        }
-    }
-
-    pub fn icon(&self) -> &str {
-        match self {
-            Self::Themes => "🎨",
-            Self::Colors => "🖌",
-            Self::Cursor => "🖱",
-            Self::Chrome => "🪟",
-        }
-    }
-
-    pub fn from_id(id: &str) -> Option<Self> {
-        match id {
-            "themes" => Some(Self::Themes),
-            "colors" => Some(Self::Colors),
-            "cursor" => Some(Self::Cursor),
-            "chrome" => Some(Self::Chrome),
-            _        => None,
-        }
-    }
+/// Display properties for a `ThemeSection` variant — single source of truth.
+struct SectionMeta {
+    id:       &'static str,
+    label:    &'static str,
+    icon:     &'static str,
 }
 
 const ALL_SECTIONS: &[ThemeSection] = &[
@@ -62,6 +30,27 @@ const ALL_SECTIONS: &[ThemeSection] = &[
     ThemeSection::Cursor,
     ThemeSection::Chrome,
 ];
+
+impl ThemeSection {
+    /// Single match block — all display properties in one place.
+    fn meta(&self) -> SectionMeta {
+        match self {
+            Self::Themes => SectionMeta { id: "themes", label: "theme.section.themes", icon: "🎨" },
+            Self::Colors => SectionMeta { id: "colors", label: "theme.section.colors", icon: "🖌" },
+            Self::Cursor => SectionMeta { id: "cursor", label: "theme.section.cursor", icon: "🖱" },
+            Self::Chrome => SectionMeta { id: "chrome", label: "theme.section.chrome", icon: "🪟" },
+        }
+    }
+
+    pub fn id(&self)    -> &str    { self.meta().id }
+    pub fn icon(&self)  -> &str    { self.meta().icon }
+    pub fn label(&self) -> String  { fs_i18n::t(self.meta().label).to_string() }
+
+    /// No match needed — delegates to `id()` via ALL_SECTIONS.
+    pub fn from_id(id: &str) -> Option<Self> {
+        ALL_SECTIONS.iter().find(|s| s.id() == id).cloned()
+    }
+}
 
 /// Root component of the Theme Manager.
 #[component]
