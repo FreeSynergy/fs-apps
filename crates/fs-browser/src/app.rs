@@ -35,8 +35,8 @@ pub type BrowserUrlRequest = Signal<Option<String>>;
 pub fn BrowserApp() -> Element {
     // Tabs state
     let mut tabs: Signal<Vec<BrowserTab>> = use_signal(|| vec![BrowserTab::new(1)]);
-    let mut active_tab: Signal<u32>       = use_signal(|| 1);
-    let mut next_tab_id: Signal<u32>      = use_signal(|| 2);
+    let mut active_tab: Signal<u32> = use_signal(|| 1);
+    let mut next_tab_id: Signal<u32> = use_signal(|| 2);
 
     // Address bar input (reflects active tab's url while typing)
     let mut address_input: Signal<String> = use_signal(String::new);
@@ -45,8 +45,8 @@ pub fn BrowserApp() -> Element {
     let mut panel: Signal<BrowserPanel> = use_signal(|| BrowserPanel::Browse);
 
     // K4: Bookmarks + History (in-memory)
-    let mut bookmarks: Signal<Vec<Bookmark>>      = use_signal(Vec::new);
-    let mut history:   Signal<Vec<HistoryEntry>>  = use_signal(Vec::new);
+    let mut bookmarks: Signal<Vec<Bookmark>> = use_signal(Vec::new);
+    let mut history: Signal<Vec<HistoryEntry>> = use_signal(Vec::new);
     let downloads: Signal<Vec<DownloadEntry>> = use_signal(Vec::new);
 
     // Browser config (search engine)
@@ -62,14 +62,21 @@ pub fn BrowserApp() -> Element {
         if let Some(mut req) = url_request {
             let maybe_url = req.read().clone();
             if let Some(url) = maybe_url {
-                navigate_to(&mut tabs, *active_tab.read(), &url, &mut history, &mut address_input);
+                navigate_to(
+                    &mut tabs,
+                    *active_tab.read(),
+                    &url,
+                    &mut history,
+                    &mut address_input,
+                );
                 *req.write() = None;
             }
         }
     });
 
     // Current active tab URL for iframe src
-    let current_url = tabs.read()
+    let current_url = tabs
+        .read()
         .iter()
         .find(|t| t.id == *active_tab.read())
         .map(|t| t.url.clone())
@@ -443,16 +450,18 @@ fn DownloadsPanel(downloads: Vec<DownloadEntry>) -> Element {
 
 /// Navigate the active tab to `url`.
 fn navigate_to(
-    tabs:    &mut Signal<Vec<BrowserTab>>,
-    tab_id:  u32,
-    url:     &str,
+    tabs: &mut Signal<Vec<BrowserTab>>,
+    tab_id: u32,
+    url: &str,
     history: &mut Signal<Vec<HistoryEntry>>,
     address: &mut Signal<String>,
 ) {
     // navigate_to is called with already-normalized URLs; keep as-is.
     let url = url.to_string();
     address.set(url.clone());
-    history.write().push(BookmarkManager::record_visit(&url, &url));
+    history
+        .write()
+        .push(BookmarkManager::record_visit(&url, &url));
 
     if let Some(tab) = tabs.write().iter_mut().find(|t| t.id == tab_id) {
         tab.navigate(url);
@@ -474,7 +483,9 @@ fn close_tab(tabs: &mut Signal<Vec<BrowserTab>>, active: &mut Signal<u32>, id: u
     tabs.write().remove(idx);
 
     if *active.read() == id {
-        let new_idx = idx.saturating_sub(1).min(tabs.read().len().saturating_sub(1));
+        let new_idx = idx
+            .saturating_sub(1)
+            .min(tabs.read().len().saturating_sub(1));
         if let Some(t) = tabs.read().get(new_idx) {
             active.set(t.id);
         }

@@ -59,9 +59,9 @@ impl BotKind {
     /// Replaces the `match kind { ... }` block previously in `BotDetail`.
     pub fn view(&self) -> Box<dyn BotView> {
         match self {
-            Self::Broadcast  => Box::new(BroadcastBotView),
+            Self::Broadcast => Box::new(BroadcastBotView),
             Self::Gatekeeper => Box::new(GatekeeperBotView),
-            _                => Box::new(DefaultBotView),
+            _ => Box::new(DefaultBotView),
         }
     }
 }

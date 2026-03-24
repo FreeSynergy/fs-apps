@@ -20,7 +20,7 @@ pub fn LensesApp() -> Element {
     let mut show_form = use_signal(|| false);
 
     // New lens form state
-    let mut form_name:  Signal<String> = use_signal(String::new);
+    let mut form_name: Signal<String> = use_signal(String::new);
     let mut form_query: Signal<String> = use_signal(String::new);
 
     // Browser URL request context (may not be present if used standalone)
@@ -132,7 +132,7 @@ pub fn LensesApp() -> Element {
                             on_refresh: {
                                 let lens_clone = lens.clone();
                                 move |_| {
-                                    let mut lenses = lenses.clone();
+                                    let mut lenses = lenses;
                                     let id = lens_clone.id;
                                     // Mark as loading
                                     if let Some(l) = lenses.write().iter_mut().find(|l| l.id == id) {
@@ -188,10 +188,10 @@ pub fn LensesApp() -> Element {
 
 #[component]
 fn LensListRow(
-    lens:       Lens,
-    active:     bool,
-    on_select:  EventHandler<()>,
-    on_delete:  EventHandler<()>,
+    lens: Lens,
+    active: bool,
+    on_select: EventHandler<()>,
+    on_delete: EventHandler<()>,
     on_refresh: EventHandler<()>,
 ) -> Element {
     rsx! {

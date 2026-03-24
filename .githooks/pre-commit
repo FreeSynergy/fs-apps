@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+NC='\033[0m'
+
+echo -e "${YELLOW}[FS] Pre-commit checks (staged packages only)...${NC}"
+
+fail() { echo -e "${RED}ERROR: $1${NC}"; exit 1; }
+
+require_tool() {
+  if ! cargo "$1" --version &>/dev/null; then
+    echo -e "${RED}Tool missing: cargo $1${NC}"
+    echo "Install with:"
+    echo "  rustup component add $2"
+    exit 1
+  fi
+}
+
+require_tool fmt rustfmt
+require_tool clippy clippy
+
+# ── Collect staged .rs files ──────────────────────────────────────────────────
+STAGED=$(git diff --cached --name-only --diff-filter=ACMR | grep '\.rs$' || true)
+
+if [ -z "$STAGED" ]; then
+  # No Rust files staged — only check toml/config changes with fmt
+  echo "  No staged .rs files — skipping clippy and tests."
+  echo -e "${GREEN}[FS] All checks passed.${NC}"
+  exit 0
+fi
+
+# ── Detect affected packages ──────────────────────────────────────────────────
+# For each staged .rs file, walk up to find its Cargo.toml and extract the package name.
+PKGS=()
+for f in $STAGED; do
+  dir=$(dirname "$f")
+  while [ "$dir" != "." ] && [ "$dir" != "/" ]; do
+    toml="$dir/Cargo.toml"
+    if [ -f "$toml" ]; then
+      name=$(grep -m1 '^name' "$toml" | sed 's/name *= *"\(.*\)"/\1/')
+      if [ -n "$name" ]; then
+        PKGS+=("$name")
+      fi
+      break
+    fi
+    dir=$(dirname "$dir")
+  done
+done
+
+# Deduplicate
+mapfile -t PKGS < <(printf '%s\n' "${PKGS[@]}" | sort -u)
+
+if [ ${#PKGS[@]} -eq 0 ]; then
+  echo "  Could not map staged files to packages — skipping."
+  echo -e "${GREEN}[FS] All checks passed.${NC}"
+  exit 0
+fi
+
+PKG_FLAGS=()
+for p in "${PKGS[@]}"; do
+  PKG_FLAGS+=("-p" "$p")
+done
+
+echo "  Affected packages: ${PKGS[*]}"
+
+# ── Format check ─────────────────────────────────────────────────────────────
+echo "  [1/3] Format check..."
+cargo fmt "${PKG_FLAGS[@]}" -- --check || fail "Format issues found. Run: cargo fmt ${PKG_FLAGS[*]}"
+
+# ── Clippy ────────────────────────────────────────────────────────────────────
+echo "  [2/3] Clippy..."
+RUSTFLAGS="-D warnings" cargo clippy "${PKG_FLAGS[@]}" --all-targets -- \
+  -D clippy::large_enum_variant \
+  -D clippy::cognitive_complexity \
+  -D clippy::too_many_arguments \
+  -D clippy::too_many_lines \
+  -D clippy::wildcard_imports \
+  -D clippy::unused_self \
+  || fail "Clippy found issues. Fix them before committing."
+
+# ── Tests ─────────────────────────────────────────────────────────────────────
+echo "  [3/3] Tests..."
+cargo test "${PKG_FLAGS[@]}" || fail "Tests failed."
+
+echo -e "${GREEN}[FS] All checks passed.${NC}"

@@ -1,7 +1,8 @@
 [workspace]
 members = [
     # UI Apps
-    # fs-store-app lives in the fs-store product repo (FreeSynergy.Store)
+    "crates/fs-store-app",
+    "crates/fs-builder",
     "crates/fs-browser",
     "crates/fs-lenses",
     "crates/fs-theme-app",
@@ -26,6 +27,8 @@ repository  = "https://github.com/FreeSynergy/fs-apps"
 [workspace.dependencies]
 
 # Internal app crates
+fs-store-app     = { path = "crates/fs-store-app" }
+fs-builder       = { path = "crates/fs-builder" }
 fs-browser       = { path = "crates/fs-browser" }
 fs-lenses        = { path = "crates/fs-lenses" }
 fs-theme-app     = { path = "crates/fs-theme-app" }
@@ -37,6 +40,7 @@ fs-managers      = { path = "crates/fs-managers" }
 
 # fs-libs — shared libraries
 fs-types      = { path = "../fs-libs/fs-types" }
+fs-store      = { path = "../fs-libs/fs-store" }
 fs-error      = { path = "../fs-libs/fs-error" }
 fs-i18n       = { path = "../fs-libs/fs-i18n", features = ["dioxus"] }
 fs-components = { path = "../fs-libs/fs-components" }

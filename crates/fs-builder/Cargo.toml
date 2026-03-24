@@ -1,0 +1,19 @@
+[package]
+name        = "fs-builder"
+description = "FreeSynergy Desktop – Builder: package creation and publishing UI"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+name = "fs_builder"
+path = "src/lib.rs"
+
+[features]
+default = ["desktop"]
+desktop = ["dioxus/desktop"]
+web     = ["dioxus/web"]
+
+[dependencies]
+dioxus    = { workspace = true }
+fs-i18n   = { workspace = true }

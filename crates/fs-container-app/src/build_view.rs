@@ -4,7 +4,7 @@ use dioxus::prelude::*;
 #[component]
 pub fn BuildView() -> Element {
     let mut yaml_input = use_signal(String::new);
-    let mut analyzed   = use_signal(|| false);
+    let mut analyzed = use_signal(|| false);
 
     rsx! {
         div { style: "display: flex; flex-direction: column; gap: 20px; max-width: 800px;",

@@ -3,9 +3,9 @@ use dioxus::prelude::*;
 
 #[component]
 pub fn ChromeView() -> Element {
-    let mut window_style  = use_signal(|| "kde");
+    let mut window_style = use_signal(|| "kde");
     let mut sidebar_style = use_signal(|| "solid");
-    let mut anim_enabled  = use_signal(|| true);
+    let mut anim_enabled = use_signal(|| true);
 
     rsx! {
         div { style: "display: flex; flex-direction: column; gap: 24px; max-width: 480px;",
@@ -112,10 +112,10 @@ fn label_heading(label: &'static str) -> Element {
 
 #[component]
 fn RadioOption(
-    id:        &'static str,
-    label:     &'static str,
-    group:     &'static str,
-    checked:   bool,
+    id: &'static str,
+    label: &'static str,
+    group: &'static str,
+    checked: bool,
     on_change: EventHandler<()>,
 ) -> Element {
     rsx! {
@@ -135,11 +135,7 @@ fn RadioOption(
 }
 
 #[component]
-fn ToggleBtn(
-    label:    &'static str,
-    active:   bool,
-    on_click: EventHandler<()>,
-) -> Element {
+fn ToggleBtn(label: &'static str, active: bool, on_click: EventHandler<()>) -> Element {
     let (bg, color, border) = if active {
         (
             "var(--fs-color-primary, #00bcd4)",

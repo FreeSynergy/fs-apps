@@ -28,8 +28,8 @@ enum ManagerTab {
 impl ManagerTab {
     fn label(&self) -> &'static str {
         match self {
-            Self::Info    => "Info",
-            Self::Config  => "Config",
+            Self::Info => "Info",
+            Self::Config => "Config",
             Self::Builder => "Builder",
         }
     }
@@ -159,25 +159,25 @@ const MANAGER_CSS: &str = r#"
 #[derive(Props, Clone, PartialEq)]
 pub struct ManagerViewProps {
     /// All packages shown in the sidebar.
-    pub packages:        Vec<PackageViewModel>,
+    pub packages: Vec<PackageViewModel>,
 
     /// The package currently selected / being managed.
-    pub selected:        PackageViewModel,
+    pub selected: PackageViewModel,
 
     /// Fired when the user selects a different package from the sidebar.
-    pub on_select:       EventHandler<String>,
+    pub on_select: EventHandler<String>,
 
     /// Fired when the user clicks Start.
-    pub on_start:        EventHandler<String>,
+    pub on_start: EventHandler<String>,
 
     /// Fired when the user clicks Stop.
-    pub on_stop:         EventHandler<String>,
+    pub on_stop: EventHandler<String>,
 
     /// Fired when the user clicks "Enable persistent" (systemd).
-    pub on_persist:      EventHandler<String>,
+    pub on_persist: EventHandler<String>,
 
     /// Fired when the user saves a config change: `(package_id, field_key, new_value)`.
-    pub on_config_save:  EventHandler<(String, String, String)>,
+    pub on_config_save: EventHandler<(String, String, String)>,
 }
 
 /// The standardized package manager window.
@@ -186,7 +186,7 @@ pub struct ManagerViewProps {
 /// Changing this component changes the Manager for all packages simultaneously.
 #[component]
 pub fn ManagerView(props: ManagerViewProps) -> Element {
-    let mut active_tab:   Signal<ManagerTab>   = use_signal(ManagerTab::default);
+    let mut active_tab: Signal<ManagerTab> = use_signal(ManagerTab::default);
     let mut sidebar_level: Signal<SidebarLevel> = use_signal(SidebarLevel::default);
 
     let pkg = &props.selected;
@@ -220,7 +220,7 @@ pub fn ManagerView(props: ManagerViewProps) -> Element {
                                 key: "{p.id}",
                                 is_active: p.id == pkg.id,
                                 pkg: p,
-                                on_select: props.on_select.clone(),
+                                on_select: props.on_select,
                                 on_drill: move |id| sidebar_level.set(SidebarLevel::Instances { package_id: id }),
                             }
                         }
@@ -270,9 +270,9 @@ pub fn ManagerView(props: ManagerViewProps) -> Element {
                     style: "flex: 1; overflow-y: auto; padding: 20px 24px;",
 
                     match *active_tab.read() {
-                        ManagerTab::Info    => rsx! { InfoTab { pkg: pkg.clone(), on_start: props.on_start.clone(), on_stop: props.on_stop.clone(), on_persist: props.on_persist.clone() } },
-                        ManagerTab::Config  => rsx! { ConfigTab { pkg_id: pkg.id.clone(), fields: pkg.config_fields.clone(), on_save: props.on_config_save.clone() } },
-                        ManagerTab::Builder => rsx! { BuilderTab { pkg_id: pkg.id.clone(), fields: pkg.build_fields.clone(), on_save: props.on_config_save.clone() } },
+                        ManagerTab::Info    => rsx! { InfoTab { pkg: pkg.clone(), on_start: props.on_start, on_stop: props.on_stop, on_persist: props.on_persist } },
+                        ManagerTab::Config  => rsx! { ConfigTab { pkg_id: pkg.id.clone(), fields: pkg.config_fields.clone(), on_save: props.on_config_save } },
+                        ManagerTab::Builder => rsx! { BuilderTab { pkg_id: pkg.id.clone(), fields: pkg.build_fields.clone(), on_save: props.on_config_save } },
                     }
                 }
             }
@@ -284,17 +284,17 @@ pub fn ManagerView(props: ManagerViewProps) -> Element {
 
 #[derive(Props, Clone, PartialEq)]
 struct SidebarPackageRowProps {
-    pkg:       PackageViewModel,
+    pkg: PackageViewModel,
     is_active: bool,
     on_select: EventHandler<String>,
-    on_drill:  EventHandler<String>,
+    on_drill: EventHandler<String>,
 }
 
 #[component]
 fn SidebarPackageRow(props: SidebarPackageRowProps) -> Element {
     let pkg = &props.pkg;
     let id_for_select = pkg.id.clone();
-    let id_for_drill  = pkg.id.clone();
+    let id_for_drill = pkg.id.clone();
 
     rsx! {
         div {
@@ -345,9 +345,9 @@ fn SidebarPackageRow(props: SidebarPackageRowProps) -> Element {
 
 #[derive(Props, Clone, PartialEq)]
 struct InfoTabProps {
-    pkg:        PackageViewModel,
-    on_start:   EventHandler<String>,
-    on_stop:    EventHandler<String>,
+    pkg: PackageViewModel,
+    on_start: EventHandler<String>,
+    on_stop: EventHandler<String>,
     on_persist: EventHandler<String>,
 }
 
@@ -524,8 +524,8 @@ fn InfoTab(props: InfoTabProps) -> Element {
 
 #[derive(Props, Clone, PartialEq)]
 struct ConfigTabProps {
-    pkg_id:  String,
-    fields:  Vec<ConfigFieldView>,
+    pkg_id: String,
+    fields: Vec<ConfigFieldView>,
     on_save: EventHandler<(String, String, String)>,
 }
 
@@ -547,7 +547,7 @@ fn ConfigTab(props: ConfigTabProps) -> Element {
                 }
 
                 for field in &props.fields {
-                    { config_field_row(field, props.pkg_id.clone(), props.on_save.clone()) }
+                    { config_field_row(field, props.pkg_id.clone(), props.on_save) }
                 }
             }
         }
@@ -556,12 +556,12 @@ fn ConfigTab(props: ConfigTabProps) -> Element {
 
 /// Renders one config field row with label, input widget, and help text.
 fn config_field_row(
-    field:   &ConfigFieldView,
-    pkg_id:  String,
+    field: &ConfigFieldView,
+    pkg_id: String,
     on_save: EventHandler<(String, String, String)>,
 ) -> Element {
-    let key_clone    = field.key.clone();
-    let current_val  = field.value.clone();
+    let key_clone = field.key.clone();
+    let current_val = field.value.clone();
     let mut edit_val: Signal<String> = use_signal(|| current_val.clone());
 
     rsx! {
@@ -681,7 +681,7 @@ fn config_field_row(
 #[derive(Props, Clone, PartialEq)]
 struct InstancesSidebarProps {
     instances: Vec<crate::view_model::InstanceView>,
-    on_back:   EventHandler<()>,
+    on_back: EventHandler<()>,
 }
 
 #[component]
@@ -761,8 +761,8 @@ fn InstanceRow(props: InstanceRowProps) -> Element {
 
 #[derive(Props, Clone, PartialEq)]
 struct BuilderTabProps {
-    pkg_id:  String,
-    fields:  Vec<ConfigFieldView>,
+    pkg_id: String,
+    fields: Vec<ConfigFieldView>,
     on_save: EventHandler<(String, String, String)>,
 }
 
@@ -784,7 +784,7 @@ fn BuilderTab(props: BuilderTabProps) -> Element {
                 }
 
                 for field in &props.fields {
-                    { config_field_row(field, props.pkg_id.clone(), props.on_save.clone()) }
+                    { config_field_row(field, props.pkg_id.clone(), props.on_save) }
                 }
             }
         }

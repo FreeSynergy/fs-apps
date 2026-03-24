@@ -2,8 +2,8 @@
 use dioxus::prelude::*;
 
 use crate::model::{
-    BotKind, CachedRoom, GroupsConfig, MessagingBot, MessagingBotsConfig,
-    RoomCollection, TomlConfig,
+    BotKind, CachedRoom, GroupsConfig, MessagingBot, MessagingBotsConfig, RoomCollection,
+    TomlConfig,
 };
 
 // ── BotManagerContext ──────────────────────────────────────────────────────────
@@ -14,7 +14,7 @@ use crate::model::{
 /// via `use_context::<BotManagerContext>()`.
 #[derive(Clone)]
 pub struct BotManagerContext {
-    pub bots:         Signal<Vec<MessagingBot>>,
+    pub bots: Signal<Vec<MessagingBot>>,
     pub selected_idx: Signal<Option<usize>>,
 }
 
@@ -24,7 +24,10 @@ impl BotManagerContext {
         // Signal<T>: Copy — copy to local to get mutable access via interior mutability
         let mut bots = self.bots;
         bots.write()[idx] = updated;
-        let _ = MessagingBotsConfig { bots: bots.read().clone() }.save();
+        let _ = MessagingBotsConfig {
+            bots: bots.read().clone(),
+        }
+        .save();
     }
 
     /// Update whichever bot is currently selected.
@@ -36,7 +39,10 @@ impl BotManagerContext {
 
     /// Return the first bot of the given kind together with its index.
     pub fn bot_by_kind(&self, kind: &BotKind) -> Option<(usize, MessagingBot)> {
-        self.bots.read().iter().enumerate()
+        self.bots
+            .read()
+            .iter()
+            .enumerate()
             .find(|(_, b)| &b.kind == kind)
             .map(|(i, b)| (i, b.clone()))
     }
@@ -48,15 +54,15 @@ impl BotManagerContext {
 /// Provide in `GroupsView` via `provide_context`; mutations trigger automatic save.
 #[derive(Clone)]
 pub struct GroupsContext {
-    pub collections:    Signal<Vec<RoomCollection>>,
-    pub rooms:          Signal<Vec<CachedRoom>>,
+    pub collections: Signal<Vec<RoomCollection>>,
+    pub rooms: Signal<Vec<CachedRoom>>,
     pub sel_collection: Signal<Option<u32>>,
 }
 
 impl GroupsContext {
     fn persist(&self) {
         let cfg = GroupsConfig {
-            collections:  self.collections.read().clone(),
+            collections: self.collections.read().clone(),
             cached_rooms: self.rooms.read().clone(),
         };
         let _ = cfg.save();
@@ -64,14 +70,23 @@ impl GroupsContext {
 
     /// Add a new collection. No-op if `name` is blank.
     pub fn add_collection(&self, name: String, description: String) {
-        if name.trim().is_empty() { return; }
-        let next_id = self.collections.read().iter().map(|c| c.id).max().unwrap_or(0) + 1;
+        if name.trim().is_empty() {
+            return;
+        }
+        let next_id = self
+            .collections
+            .read()
+            .iter()
+            .map(|c| c.id)
+            .max()
+            .unwrap_or(0)
+            + 1;
         let mut collections = self.collections;
         collections.write().push(RoomCollection {
-            id:          next_id,
-            name:        name.trim().to_string(),
+            id: next_id,
+            name: name.trim().to_string(),
             description: description.trim().to_string(),
-            members:     vec![],
+            members: vec![],
         });
         self.persist();
     }
@@ -81,7 +96,9 @@ impl GroupsContext {
         let mut collections = self.collections;
         if let Some(c) = collections.write().iter_mut().find(|c| c.id == col_id) {
             for room_ref in rooms {
-                if !c.members.contains(&room_ref) { c.members.push(room_ref); }
+                if !c.members.contains(&room_ref) {
+                    c.members.push(room_ref);
+                }
             }
         }
         self.persist();
@@ -96,16 +113,24 @@ impl GroupsContext {
         predicate: impl Fn(&CachedRoom) -> bool,
     ) -> Vec<CachedRoom> {
         match sel_collection {
-            None => self.rooms.read().iter()
+            None => self
+                .rooms
+                .read()
+                .iter()
                 .filter(|r| predicate(r))
                 .cloned()
                 .collect(),
             Some(col_id) => {
-                let col_members: Vec<(String, String)> = self.collections.read().iter()
+                let col_members: Vec<(String, String)> = self
+                    .collections
+                    .read()
+                    .iter()
                     .find(|c| c.id == col_id)
                     .map(|c| c.members.clone())
                     .unwrap_or_default();
-                self.rooms.read().iter()
+                self.rooms
+                    .read()
+                    .iter()
                     .filter(|r| col_members.contains(&(r.platform.clone(), r.room_id.clone())))
                     .filter(|r| predicate(r))
                     .cloned()

@@ -3,27 +3,50 @@ use dioxus::prelude::*;
 
 #[derive(Clone, PartialEq)]
 struct ColorVar {
-    name:  &'static str,
+    name: &'static str,
     value: &'static str,
 }
 
 const CSS_VARS: &[ColorVar] = &[
-    ColorVar { name: "--fs-color-primary",      value: "#00bcd4" },
-    ColorVar { name: "--fs-color-bg-base",       value: "#0f172a" },
-    ColorVar { name: "--fs-color-bg-surface",    value: "#1e293b" },
-    ColorVar { name: "--fs-color-text-primary",  value: "#f1f5f9" },
-    ColorVar { name: "--fs-color-text-muted",    value: "#64748b" },
-    ColorVar { name: "--fs-color-border-default",value: "#334155" },
-    ColorVar { name: "--fs-color-accent",        value: "#7c3aed" },
-    ColorVar { name: "--fs-color-error",         value: "#ef4444" },
+    ColorVar {
+        name: "--fs-color-primary",
+        value: "#00bcd4",
+    },
+    ColorVar {
+        name: "--fs-color-bg-base",
+        value: "#0f172a",
+    },
+    ColorVar {
+        name: "--fs-color-bg-surface",
+        value: "#1e293b",
+    },
+    ColorVar {
+        name: "--fs-color-text-primary",
+        value: "#f1f5f9",
+    },
+    ColorVar {
+        name: "--fs-color-text-muted",
+        value: "#64748b",
+    },
+    ColorVar {
+        name: "--fs-color-border-default",
+        value: "#334155",
+    },
+    ColorVar {
+        name: "--fs-color-accent",
+        value: "#7c3aed",
+    },
+    ColorVar {
+        name: "--fs-color-error",
+        value: "#ef4444",
+    },
 ];
 
 #[component]
 pub fn ColorsView() -> Element {
     // Editable values (initialized from CSS_VARS defaults)
-    let mut values: Signal<Vec<String>> = use_signal(|| {
-        CSS_VARS.iter().map(|v| v.value.to_string()).collect()
-    });
+    let mut values: Signal<Vec<String>> =
+        use_signal(|| CSS_VARS.iter().map(|v| v.value.to_string()).collect());
 
     rsx! {
         div { style: "display: flex; flex-direction: column; gap: 16px; max-width: 640px;",
@@ -67,11 +90,7 @@ pub fn ColorsView() -> Element {
 }
 
 #[component]
-fn ColorRow(
-    name:      &'static str,
-    value:     String,
-    on_change: EventHandler<String>,
-) -> Element {
+fn ColorRow(name: &'static str, value: String, on_change: EventHandler<String>) -> Element {
     rsx! {
         div {
             style: "display: flex; align-items: center; gap: 12px; \

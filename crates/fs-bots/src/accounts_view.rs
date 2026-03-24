@@ -7,9 +7,9 @@ use crate::model::{ControlBotAccount, ControlBotConfig, Platform, TomlConfig};
 #[component]
 pub fn AccountsView() -> Element {
     let mut accounts: Signal<Vec<ControlBotAccount>> = use_signal(ControlBotConfig::load);
-    let mut show_form     = use_signal(|| false);
+    let mut show_form = use_signal(|| false);
     let mut form_platform = use_signal(|| Platform::Telegram);
-    let mut form_label    = use_signal(String::new);
+    let mut form_label = use_signal(String::new);
     let mut form_creds: Signal<Vec<String>> = use_signal(Vec::new);
 
     let platform_fields = form_platform.read().credential_fields();
@@ -96,7 +96,7 @@ pub fn AccountsView() -> Element {
                                         padding: 8px 10px; font-size: 13px; \
                                         color: var(--fs-color-text-primary);",
                                 onchange: move |e| {
-                                    let p = Platform::from_str(&e.value());
+                                    let p = Platform::from_protocol_str(&e.value());
                                     let field_count = p.credential_fields().len();
                                     form_platform.set(p);
                                     form_creds.set(vec!["".to_string(); field_count]);

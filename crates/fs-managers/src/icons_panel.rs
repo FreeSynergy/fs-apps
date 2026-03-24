@@ -6,15 +6,14 @@ use fs_manager_icons::IconManager;
 #[component]
 pub fn IconsManagerPanel() -> Element {
     let icons_root = std::path::PathBuf::from(
-        std::env::var("FS_ICONS_ROOT")
-            .unwrap_or_else(|_| "../FreeSynergy.Icons".into())
+        std::env::var("FS_ICONS_ROOT").unwrap_or_else(|_| "../FreeSynergy.Icons".into()),
     );
-    let mgr  = IconManager::new(icons_root, vec![]);
+    let mgr = IconManager::new(icons_root, vec![]);
     let sets = mgr.sets();
 
     let first_id = sets.first().map(|s| s.id.clone()).unwrap_or_default();
     let mut selected_id = use_signal(|| first_id);
-    let mut search      = use_signal(String::new);
+    let mut search = use_signal(String::new);
 
     let current_set = {
         let id = selected_id.read().clone();
@@ -22,12 +21,13 @@ pub fn IconsManagerPanel() -> Element {
     };
 
     let icons = {
-        let id  = selected_id.read().clone();
-        let q   = search.read().clone();
+        let id = selected_id.read().clone();
+        let q = search.read().clone();
         if id.is_empty() {
             vec![]
         } else {
-            mgr.list_set(&id).unwrap_or_default()
+            mgr.list_set(&id)
+                .unwrap_or_default()
                 .into_iter()
                 .filter(|name| q.is_empty() || name.to_lowercase().contains(&q.to_lowercase()))
                 .collect::<Vec<_>>()

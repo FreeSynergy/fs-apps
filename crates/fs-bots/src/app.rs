@@ -10,8 +10,8 @@ use crate::model::{BotKind, MessagingBot, MessagingBotsConfig};
 
 /// Display properties for a `BotSection` variant — single source of truth.
 struct SectionMeta {
-    id:       &'static str,
-    icon:     &'static str,
+    id: &'static str,
+    icon: &'static str,
     i18n_key: &'static str,
 }
 
@@ -37,17 +37,43 @@ impl BotSection {
     /// Single match block — all display properties in one place.
     fn meta(&self) -> SectionMeta {
         match self {
-            Self::Accounts   => SectionMeta { id: "accounts",   icon: "🔑", i18n_key: "bots.section.accounts"   },
-            Self::Bots       => SectionMeta { id: "bots",       icon: "🤖", i18n_key: "bots.section.bots"       },
-            Self::Broadcast  => SectionMeta { id: "broadcast",  icon: "📢", i18n_key: "bots.section.broadcast"  },
-            Self::Gatekeeper => SectionMeta { id: "gatekeeper", icon: "🔒", i18n_key: "bots.section.gatekeeper" },
-            Self::Groups     => SectionMeta { id: "groups",     icon: "📁", i18n_key: "bots.section.groups"     },
+            Self::Accounts => SectionMeta {
+                id: "accounts",
+                icon: "🔑",
+                i18n_key: "bots.section.accounts",
+            },
+            Self::Bots => SectionMeta {
+                id: "bots",
+                icon: "🤖",
+                i18n_key: "bots.section.bots",
+            },
+            Self::Broadcast => SectionMeta {
+                id: "broadcast",
+                icon: "📢",
+                i18n_key: "bots.section.broadcast",
+            },
+            Self::Gatekeeper => SectionMeta {
+                id: "gatekeeper",
+                icon: "🔒",
+                i18n_key: "bots.section.gatekeeper",
+            },
+            Self::Groups => SectionMeta {
+                id: "groups",
+                icon: "📁",
+                i18n_key: "bots.section.groups",
+            },
         }
     }
 
-    pub fn id(&self)    -> &str    { self.meta().id }
-    pub fn icon(&self)  -> &str    { self.meta().icon }
-    pub fn label(&self) -> String  { fs_i18n::t(self.meta().i18n_key).to_string() }
+    pub fn id(&self) -> &str {
+        self.meta().id
+    }
+    pub fn icon(&self) -> &str {
+        self.meta().icon
+    }
+    pub fn label(&self) -> String {
+        fs_i18n::t(self.meta().i18n_key).to_string()
+    }
 
     /// No match needed — delegates to `id()` via ALL_SECTIONS.
     pub fn from_id(id: &str) -> Option<Self> {
@@ -58,9 +84,9 @@ impl BotSection {
     /// `None` for generic sections (Accounts, Bots, Groups).
     pub fn bot_kind(&self) -> Option<BotKind> {
         match self {
-            Self::Broadcast  => Some(BotKind::Broadcast),
+            Self::Broadcast => Some(BotKind::Broadcast),
             Self::Gatekeeper => Some(BotKind::Gatekeeper),
-            _                => None,
+            _ => None,
         }
     }
 }
@@ -68,32 +94,34 @@ impl BotSection {
 /// Root component of the Bot Manager.
 #[component]
 pub fn BotManagerApp() -> Element {
-    let bots         = use_signal(MessagingBotsConfig::load);
+    let bots = use_signal(MessagingBotsConfig::load);
     let selected_idx = use_signal(|| Some(0usize));
-    let ctx          = BotManagerContext { bots, selected_idx };
+    let ctx = BotManagerContext { bots, selected_idx };
     provide_context(ctx.clone());
 
     let mut active = use_signal(|| BotSection::Accounts);
 
-    let sidebar_items: Vec<SidebarItem> = ALL_SECTIONS.iter()
+    let sidebar_items: Vec<SidebarItem> = ALL_SECTIONS
+        .iter()
         .map(|s| SidebarItem::new(s.id(), s.icon(), s.label()))
         .collect();
 
-    let bot_list      = ctx.bots.read().clone();
-    let sel_idx       = *ctx.selected_idx.read();
-    let selected      = sel_idx.and_then(|i| bot_list.get(i).cloned());
+    let bot_list = ctx.bots.read().clone();
+    let sel_idx = *ctx.selected_idx.read();
+    let selected = sel_idx.and_then(|i| bot_list.get(i).cloned());
     let active_bot_id = sel_idx
         .and_then(|i| bot_list.get(i))
         .map(|b| b.id.clone())
         .unwrap_or_default();
 
-    let bots_sidebar_items: Vec<SidebarItem> = bot_list.iter()
+    let bots_sidebar_items: Vec<SidebarItem> = bot_list
+        .iter()
         .map(|b| SidebarItem::new(b.id.clone(), b.kind.icon().to_string(), b.name.clone()))
         .collect();
 
     // Signal copies for closures (Signal<T>: Copy — shares the same reactive storage)
-    let bots_sig         = ctx.bots;
-    let mut sel_idx_sig  = ctx.selected_idx;
+    let bots_sig = ctx.bots;
+    let mut sel_idx_sig = ctx.selected_idx;
 
     rsx! {
         style { "{FS_SIDEBAR_CSS}" }
@@ -206,7 +234,11 @@ pub fn BotManagerApp() -> Element {
 #[component]
 fn BotDetail(bot: MessagingBot, on_update: EventHandler<MessagingBot>) -> Element {
     let status_color = if bot.enabled { "#22c55e" } else { "#64748b" };
-    let status_label = if bot.enabled { "● Running" } else { "○ Stopped" };
+    let status_label = if bot.enabled {
+        "● Running"
+    } else {
+        "○ Stopped"
+    };
     let view = bot.kind.view();
 
     rsx! {

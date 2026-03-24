@@ -88,11 +88,9 @@ pub fn InstanceConfigEditor(service_name: String) -> Element {
     let mut save_msg: Signal<Option<String>> = use_signal(|| None);
 
     let svc = service_name.clone();
-    let save = move |_| {
-        match save_instance_config(&svc, &config.read()) {
-            Ok(()) => save_msg.set(Some("Saved.".into())),
-            Err(e) => save_msg.set(Some(format!("Save failed: {e}"))),
-        }
+    let save = move |_| match save_instance_config(&svc, &config.read()) {
+        Ok(()) => save_msg.set(Some("Saved.".into())),
+        Err(e) => save_msg.set(Some(format!("Save failed: {e}"))),
     };
 
     rsx! {
@@ -199,10 +197,10 @@ fn SectionLabel(label: String) -> Element {
 
 #[component]
 fn ConfigRow(
-    label:       String,
-    value:       String,
+    label: String,
+    value: String,
     placeholder: String,
-    on_change:   EventHandler<String>,
+    on_change: EventHandler<String>,
 ) -> Element {
     rsx! {
         div {
@@ -230,11 +228,7 @@ fn ConfigRow(
 }
 
 #[component]
-fn SubServiceToggle(
-    name:      String,
-    enabled:   bool,
-    on_toggle: EventHandler<bool>,
-) -> Element {
+fn SubServiceToggle(name: String, enabled: bool, on_toggle: EventHandler<bool>) -> Element {
     rsx! {
         div {
             style: "display: flex; align-items: center; gap: 10px; \

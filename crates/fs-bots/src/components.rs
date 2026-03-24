@@ -23,7 +23,11 @@ pub fn EmptyState(message: String) -> Element {
 #[component]
 pub fn StatusDot(connected: bool) -> Element {
     let color = if connected { "#22c55e" } else { "#ef4444" };
-    let label = if connected { "Connected" } else { "Disconnected" };
+    let label = if connected {
+        "Connected"
+    } else {
+        "Disconnected"
+    };
     rsx! {
         div { style: "display: flex; align-items: center; gap: 6px; flex-shrink: 0;",
             div { style: "width: 8px; height: 8px; border-radius: 50%; background: {color};" }

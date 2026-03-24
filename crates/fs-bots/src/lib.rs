@@ -21,6 +21,10 @@ const I18N_SNIPPETS: &[(&str, &str)] = &[
 pub struct I18nPlugin;
 
 impl fs_i18n::SnippetPlugin for I18nPlugin {
-    fn name(&self) -> &str { "fs-bots" }
-    fn snippets(&self) -> &[(&str, &str)] { I18N_SNIPPETS }
+    fn name(&self) -> &str {
+        "fs-bots"
+    }
+    fn snippets(&self) -> &[(&str, &str)] {
+        I18N_SNIPPETS
+    }
 }

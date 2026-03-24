@@ -9,15 +9,15 @@ use crate::templates::BUILTIN_TEMPLATES;
 pub fn TasksApp() -> Element {
     let mut tasks = use_signal(TasksConfig::load);
     let mut selected_idx: Signal<Option<usize>> = use_signal(|| None);
-    let mut editing          = use_signal(|| false);
-    let mut show_templates   = use_signal(|| false);
-    let mut next_id          = use_signal(|| 100u32);
+    let mut editing = use_signal(|| false);
+    let mut show_templates = use_signal(|| false);
+    let mut next_id = use_signal(|| 100u32);
 
-    let task_list          = tasks.read().tasks.clone();
-    let sel_idx            = *selected_idx.read();
-    let selected           = sel_idx.and_then(|i| task_list.get(i).cloned());
-    let is_editing         = *editing.read();
-    let is_show_templates  = *show_templates.read();
+    let task_list = tasks.read().tasks.clone();
+    let sel_idx = *selected_idx.read();
+    let selected = sel_idx.and_then(|i| task_list.get(i).cloned());
+    let is_editing = *editing.read();
+    let is_show_templates = *show_templates.read();
 
     rsx! {
         div {
@@ -173,9 +173,17 @@ pub fn TasksApp() -> Element {
 
 #[component]
 fn TaskListRow(task: TaskPipeline, is_active: bool, on_click: EventHandler<MouseEvent>) -> Element {
-    let bg     = if is_active { "var(--fs-color-bg-overlay)" } else { "transparent" };
-    let border = if is_active { "2px solid var(--fs-color-primary)" } else { "2px solid transparent" };
-    let dot    = if task.enabled { "#22c55e" } else { "#64748b" };
+    let bg = if is_active {
+        "var(--fs-color-bg-overlay)"
+    } else {
+        "transparent"
+    };
+    let border = if is_active {
+        "2px solid var(--fs-color-primary)"
+    } else {
+        "2px solid transparent"
+    };
+    let dot = if task.enabled { "#22c55e" } else { "#64748b" };
 
     rsx! {
         div {
@@ -209,7 +217,7 @@ fn TaskDetail(
     on_delete: EventHandler<()>,
     on_run: EventHandler<()>,
 ) -> Element {
-    let status_color  = if task.enabled { "#22c55e" } else { "#64748b" };
+    let status_color = if task.enabled { "#22c55e" } else { "#64748b" };
     let trigger_label = task.trigger.label();
 
     rsx! {

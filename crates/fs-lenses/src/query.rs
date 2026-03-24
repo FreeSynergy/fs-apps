@@ -18,7 +18,7 @@ impl LensQueryEngine {
         if let Ok(items) = self.query_via_bus(&lens.query).await {
             return items;
         }
-        self.demo_items(&lens.query)
+        Self::demo_items(&lens.query)
     }
 
     async fn query_via_bus(&self, query: &str) -> Result<Vec<LensItem>, String> {
@@ -48,34 +48,33 @@ impl LensQueryEngine {
     }
 
     /// Demonstration items shown when the bus is not reachable.
-    fn demo_items(&self, query: &str) -> Vec<LensItem> {
+    fn demo_items(query: &str) -> Vec<LensItem> {
         let q = query.to_string();
         vec![
             LensItem {
-                role:    LensRole::Wiki,
+                role: LensRole::Wiki,
                 summary: format!("Wiki: Search results for '{q}'"),
-                link:    Some(format!("http://wiki.local/search?q={q}")),
-                source:  "outline-wiki".into(),
+                link: Some(format!("http://wiki.local/search?q={q}")),
+                source: "outline-wiki".into(),
             },
             LensItem {
-                role:    LensRole::Chat,
+                role: LensRole::Chat,
                 summary: format!("Chat: 3 messages mentioning '{q}'"),
-                link:    Some("http://chat.local/search".into()),
-                source:  "matrix".into(),
+                link: Some("http://chat.local/search".into()),
+                source: "matrix".into(),
             },
             LensItem {
-                role:    LensRole::Git,
+                role: LensRole::Git,
                 summary: format!("Git: 2 repositories matching '{q}'"),
-                link:    Some("http://git.local/explore".into()),
-                source:  "forgejo".into(),
+                link: Some("http://git.local/explore".into()),
+                source: "forgejo".into(),
             },
             LensItem {
-                role:    LensRole::Tasks,
+                role: LensRole::Tasks,
                 summary: format!("Tasks: 5 open tasks for '{q}'"),
-                link:    Some("http://tasks.local/".into()),
-                source:  "vikunja".into(),
+                link: Some("http://tasks.local/".into()),
+                source: "vikunja".into(),
             },
         ]
     }
 }
-

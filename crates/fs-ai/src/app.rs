@@ -23,7 +23,10 @@ impl ModelConfig {
 
     fn engine(&self) -> LlmEngine {
         LlmEngine::new(
-            LlmConfig { model: self.model.clone(), ..LlmConfig::default() },
+            LlmConfig {
+                model: self.model.clone(),
+                ..LlmConfig::default()
+            },
             LlmEngine::default_binary(),
             LlmEngine::default_data_dir(),
         )
@@ -35,11 +38,15 @@ impl ModelConfig {
 #[component]
 pub fn AiManagerApp() -> Element {
     let mut selected_model = use_signal(|| LlmModel::Qwen3_4B);
-    let mut status         = use_signal(|| ModelConfig::for_model(LlmModel::Qwen3_4B).engine().status());
-    let mut feedback       = use_signal(String::new);
+    let mut status = use_signal(|| ModelConfig::for_model(LlmModel::Qwen3_4B).engine().status());
+    let mut feedback = use_signal(String::new);
 
     let mut do_refresh = move || {
-        status.set(ModelConfig::for_model(selected_model.read().clone()).engine().status());
+        status.set(
+            ModelConfig::for_model(selected_model.read().clone())
+                .engine()
+                .status(),
+        );
     };
 
     rsx! {

@@ -27,13 +27,13 @@ pub struct SearchEngine {
 
 impl SearchEngine {
     pub fn new(
-        id:           impl Into<String>,
-        name:         impl Into<String>,
+        id: impl Into<String>,
+        name: impl Into<String>,
         url_template: impl Into<String>,
     ) -> Self {
         Self {
-            id:           id.into(),
-            name:         name.into(),
+            id: id.into(),
+            name: name.into(),
             url_template: url_template.into(),
         }
     }
@@ -71,11 +71,7 @@ impl SearchEngineRegistry {
                 "Startpage",
                 "https://www.startpage.com/search?q={query}",
             ),
-            SearchEngine::new(
-                "kagi",
-                "Kagi",
-                "https://kagi.com/search?q={query}",
-            ),
+            SearchEngine::new("kagi", "Kagi", "https://kagi.com/search?q={query}"),
             SearchEngine::new(
                 "duckduckgo",
                 "DuckDuckGo",
@@ -94,11 +90,13 @@ impl SearchEngineRegistry {
         Self::all()
             .into_iter()
             .find(|e| e.id == id)
-            .unwrap_or_else(|| SearchEngine::new(
-                "brave",
-                "Brave Search",
-                "https://search.brave.com/search?q={query}",
-            ))
+            .unwrap_or_else(|| {
+                SearchEngine::new(
+                    "brave",
+                    "Brave Search",
+                    "https://search.brave.com/search?q={query}",
+                )
+            })
     }
 }
 
@@ -112,11 +110,15 @@ pub struct BrowserConfig {
     pub search_engine: String,
 }
 
-fn default_engine_id() -> String { "brave".into() }
+fn default_engine_id() -> String {
+    "brave".into()
+}
 
 impl Default for BrowserConfig {
     fn default() -> Self {
-        Self { search_engine: default_engine_id() }
+        Self {
+            search_engine: default_engine_id(),
+        }
     }
 }
 
@@ -161,11 +163,13 @@ fn config_path() -> std::path::PathBuf {
 // ── URL encoding ──────────────────────────────────────────────────────────────
 
 fn url_encode(s: &str) -> String {
-    s.chars().map(|c| match c {
-        ' '                                          => '+'.to_string(),
-        c if c.is_alphanumeric() || "-_.~".contains(c) => c.to_string(),
-        c                                            => format!("%{:02X}", c as u32),
-    }).collect()
+    s.chars()
+        .map(|c| match c {
+            ' ' => '+'.to_string(),
+            c if c.is_alphanumeric() || "-_.~".contains(c) => c.to_string(),
+            c => format!("%{:02X}", c as u32),
+        })
+        .collect()
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
@@ -184,7 +188,10 @@ mod tests {
     fn build_url_encodes_query() {
         let engine = SearchEngineRegistry::find("brave");
         let url = engine.build_url("kanidm identity provider");
-        assert_eq!(url, "https://search.brave.com/search?q=kanidm+identity+provider");
+        assert_eq!(
+            url,
+            "https://search.brave.com/search?q=kanidm+identity+provider"
+        );
     }
 
     #[test]

@@ -1,8 +1,8 @@
 pub mod app;
-pub mod themes_view;
+pub mod chrome_view;
 pub mod colors_view;
 pub mod cursor_view;
-pub mod chrome_view;
+pub mod themes_view;
 
 pub use app::ThemeManagerApp;
 
@@ -15,6 +15,10 @@ const I18N_SNIPPETS: &[(&str, &str)] = &[
 pub struct I18nPlugin;
 
 impl fs_i18n::SnippetPlugin for I18nPlugin {
-    fn name(&self) -> &str { "fs-theme-app" }
-    fn snippets(&self) -> &[(&str, &str)] { I18N_SNIPPETS }
+    fn name(&self) -> &str {
+        "fs-theme-app"
+    }
+    fn snippets(&self) -> &[(&str, &str)] {
+        I18N_SNIPPETS
+    }
 }

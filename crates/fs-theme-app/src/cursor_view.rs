@@ -3,16 +3,32 @@ use dioxus::prelude::*;
 
 #[derive(Clone, PartialEq)]
 struct CursorOption {
-    id:          &'static str,
-    name:        &'static str,
+    id: &'static str,
+    name: &'static str,
     description: &'static str,
 }
 
 const CURSOR_OPTIONS: &[CursorOption] = &[
-    CursorOption { id: "system",     name: "System Default",      description: "Use the operating system cursor." },
-    CursorOption { id: "freesynergy",name: "FreeSynergy",         description: "Custom FreeSynergy cursor set." },
-    CursorOption { id: "minimal",    name: "Minimal",             description: "Clean, minimal cursor design." },
-    CursorOption { id: "retro",      name: "Retro",               description: "Classic retro-style cursor." },
+    CursorOption {
+        id: "system",
+        name: "System Default",
+        description: "Use the operating system cursor.",
+    },
+    CursorOption {
+        id: "freesynergy",
+        name: "FreeSynergy",
+        description: "Custom FreeSynergy cursor set.",
+    },
+    CursorOption {
+        id: "minimal",
+        name: "Minimal",
+        description: "Clean, minimal cursor design.",
+    },
+    CursorOption {
+        id: "retro",
+        name: "Retro",
+        description: "Classic retro-style cursor.",
+    },
 ];
 
 #[component]
@@ -42,9 +58,9 @@ pub fn CursorView() -> Element {
 
 #[component]
 fn CursorCard(
-    option:      &'static CursorOption,
+    option: &'static CursorOption,
     is_selected: bool,
-    on_select:   EventHandler<&'static str>,
+    on_select: EventHandler<&'static str>,
 ) -> Element {
     let border = if is_selected {
         "border: 2px solid var(--fs-color-primary, #00bcd4);"

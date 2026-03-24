@@ -12,8 +12,8 @@ impl BookmarkManager {
         let id = chrono::Utc::now().timestamp_millis();
         Some(Bookmark {
             id,
-            title:      title.to_string(),
-            url:        url.to_string(),
+            title: title.to_string(),
+            url: url.to_string(),
             created_at: chrono::Utc::now().to_rfc3339(),
         })
     }
@@ -26,9 +26,9 @@ impl BookmarkManager {
     /// Record a history visit. Adds a new entry; duplicates are kept for full history.
     pub fn record_visit(title: &str, url: &str) -> HistoryEntry {
         HistoryEntry {
-            id:         chrono::Utc::now().timestamp_millis(),
-            title:      title.to_string(),
-            url:        url.to_string(),
+            id: chrono::Utc::now().timestamp_millis(),
+            title: title.to_string(),
+            url: url.to_string(),
             visited_at: chrono::Utc::now().to_rfc3339(),
         }
     }

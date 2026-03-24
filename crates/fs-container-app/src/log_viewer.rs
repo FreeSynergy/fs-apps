@@ -23,8 +23,8 @@ pub enum LogLevel {
 impl LogLevel {
     pub fn color(&self) -> &str {
         match self {
-            Self::Info  => "var(--fs-text-primary)",
-            Self::Warn  => "var(--fs-warning)",
+            Self::Info => "var(--fs-text-primary)",
+            Self::Warn => "var(--fs-warning)",
             Self::Error => "var(--fs-error)",
             Self::Debug => "var(--fs-text-muted)",
         }
@@ -47,7 +47,15 @@ impl LogLevel {
 /// Fetch last N lines from journalctl --user for the given unit.
 async fn fetch_journal(unit: &str, lines: u32) -> Vec<String> {
     let Ok(out) = tokio::process::Command::new("journalctl")
-        .args(["--user", "-u", unit, "-n", &lines.to_string(), "--no-pager", "--output=short"])
+        .args([
+            "--user",
+            "-u",
+            unit,
+            "-n",
+            &lines.to_string(),
+            "--no-pager",
+            "--output=short",
+        ])
         .output()
         .await
     else {
@@ -63,7 +71,7 @@ async fn fetch_journal(unit: &str, lines: u32) -> Vec<String> {
 #[component]
 pub fn LogViewer(service: String) -> Element {
     let mut entries = use_signal(Vec::<LogEntry>::new);
-    let mut follow  = use_signal(|| true);
+    let mut follow = use_signal(|| true);
 
     use_future({
         let service = service.clone();

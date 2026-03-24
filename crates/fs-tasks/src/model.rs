@@ -13,8 +13,8 @@ pub enum DataTrigger {
 impl DataTrigger {
     pub fn label(&self) -> String {
         match self {
-            Self::Manual          => "Manual only".into(),
-            Self::OnEvent(ev)     => format!("On event: {ev}"),
+            Self::Manual => "Manual only".into(),
+            Self::OnEvent(ev) => format!("On event: {ev}"),
             Self::Scheduled(cron) => format!("Scheduled: {cron}"),
         }
     }
@@ -38,9 +38,9 @@ pub enum FieldTransform {
 impl FieldTransform {
     pub fn label(&self) -> String {
         match self {
-            Self::Direct         => "Direct copy".into(),
+            Self::Direct => "Direct copy".into(),
             Self::Template(tmpl) => format!("Template: {tmpl}"),
-            Self::Fixed(val)     => format!("Fixed: {val}"),
+            Self::Fixed(val) => format!("Fixed: {val}"),
         }
     }
 }
@@ -88,22 +88,50 @@ impl TaskPipeline {
                 service: "Forgejo".into(),
                 offer: "repos.list".into(),
                 fields: vec![
-                    DataField { name: "name".into(),        label: "Repo Name".into(),   example: "my-repo".into() },
-                    DataField { name: "description".into(), label: "Description".into(), example: "A cool project".into() },
+                    DataField {
+                        name: "name".into(),
+                        label: "Repo Name".into(),
+                        example: "my-repo".into(),
+                    },
+                    DataField {
+                        name: "description".into(),
+                        label: "Description".into(),
+                        example: "A cool project".into(),
+                    },
                 ],
             },
             target: DataTarget {
                 service: "Outline".into(),
                 accept: "document.create".into(),
                 fields: vec![
-                    DataField { name: "title".into(), label: "Title".into(), example: "My Doc".into() },
-                    DataField { name: "body".into(),  label: "Body".into(),  example: "Content…".into() },
+                    DataField {
+                        name: "title".into(),
+                        label: "Title".into(),
+                        example: "My Doc".into(),
+                    },
+                    DataField {
+                        name: "body".into(),
+                        label: "Body".into(),
+                        example: "Content…".into(),
+                    },
                 ],
             },
             mappings: vec![
-                FieldMapping { source_field: Some("name".into()),        target_field: "title".into(),      transform: FieldTransform::Template("Repo: {{ value }}".into()) },
-                FieldMapping { source_field: Some("description".into()), target_field: "body".into(),       transform: FieldTransform::Direct },
-                FieldMapping { source_field: None,                       target_field: "collection".into(), transform: FieldTransform::Fixed("Documentation".into()) },
+                FieldMapping {
+                    source_field: Some("name".into()),
+                    target_field: "title".into(),
+                    transform: FieldTransform::Template("Repo: {{ value }}".into()),
+                },
+                FieldMapping {
+                    source_field: Some("description".into()),
+                    target_field: "body".into(),
+                    transform: FieldTransform::Direct,
+                },
+                FieldMapping {
+                    source_field: None,
+                    target_field: "collection".into(),
+                    transform: FieldTransform::Fixed("Documentation".into()),
+                },
             ],
             trigger: DataTrigger::Manual,
             enabled: true,
@@ -112,7 +140,11 @@ impl TaskPipeline {
     }
 
     pub fn status_label(&self) -> &'static str {
-        if self.enabled { "● Active" } else { "○ Inactive" }
+        if self.enabled {
+            "● Active"
+        } else {
+            "○ Inactive"
+        }
     }
 }
 
@@ -137,7 +169,10 @@ pub struct TasksConfig {
 impl TasksConfig {
     fn path() -> PathBuf {
         let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
-        PathBuf::from(home).join(".config").join("fsn").join("tasks.toml")
+        PathBuf::from(home)
+            .join(".config")
+            .join("fsn")
+            .join("tasks.toml")
     }
 
     pub fn load() -> Self {

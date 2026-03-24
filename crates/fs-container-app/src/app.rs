@@ -10,8 +10,8 @@ use crate::service_list::ServiceList;
 
 /// Display properties for a `ContainerSection` variant — single source of truth.
 struct SectionMeta {
-    id:       &'static str,
-    icon:     &'static str,
+    id: &'static str,
+    icon: &'static str,
     i18n_key: &'static str,
 }
 
@@ -35,16 +35,38 @@ impl ContainerSection {
     /// Single match block — all display properties in one place.
     fn meta(&self) -> SectionMeta {
         match self {
-            Self::Installed  => SectionMeta { id: "installed",   icon: "📦", i18n_key: "container.section.installed"   },
-            Self::InstallNew => SectionMeta { id: "install_new", icon: "🛍", i18n_key: "container.section.install_new" },
-            Self::Build      => SectionMeta { id: "build",       icon: "🔧", i18n_key: "container.section.build"       },
-            Self::Logs       => SectionMeta { id: "logs",        icon: "📋", i18n_key: "container.section.logs"        },
+            Self::Installed => SectionMeta {
+                id: "installed",
+                icon: "📦",
+                i18n_key: "container.section.installed",
+            },
+            Self::InstallNew => SectionMeta {
+                id: "install_new",
+                icon: "🛍",
+                i18n_key: "container.section.install_new",
+            },
+            Self::Build => SectionMeta {
+                id: "build",
+                icon: "🔧",
+                i18n_key: "container.section.build",
+            },
+            Self::Logs => SectionMeta {
+                id: "logs",
+                icon: "📋",
+                i18n_key: "container.section.logs",
+            },
         }
     }
 
-    pub fn id(&self)    -> &str   { self.meta().id }
-    pub fn icon(&self)  -> &str   { self.meta().icon }
-    pub fn label(&self) -> String { fs_i18n::t(self.meta().i18n_key).to_string() }
+    pub fn id(&self) -> &str {
+        self.meta().id
+    }
+    pub fn icon(&self) -> &str {
+        self.meta().icon
+    }
+    pub fn label(&self) -> String {
+        fs_i18n::t(self.meta().i18n_key).to_string()
+    }
 
     /// No match needed — delegates to `id()` via ALL_SECTIONS.
     pub fn from_id(id: &str) -> Option<Self> {
@@ -58,7 +80,8 @@ pub fn Container() -> Element {
     let mut active = use_signal(|| ContainerSection::Installed);
     let mut selected_service: Signal<Option<String>> = use_signal(|| None);
 
-    let sidebar_items: Vec<SidebarItem> = ALL_SECTIONS.iter()
+    let sidebar_items: Vec<SidebarItem> = ALL_SECTIONS
+        .iter()
         .map(|s| SidebarItem::new(s.id(), s.icon(), s.label()))
         .collect();
 

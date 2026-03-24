@@ -8,11 +8,36 @@ use crate::model::{CachedRoom, GroupsConfig};
 
 fn demo_rooms() -> Vec<CachedRoom> {
     vec![
-        CachedRoom { platform: "Telegram".into(), room_id: "-1001".into(), room_name: "FreeSynergy Community".into(), member_count: Some(1240) },
-        CachedRoom { platform: "Telegram".into(), room_id: "-1002".into(), room_name: "Dev Chat".into(),              member_count: Some(87)   },
-        CachedRoom { platform: "Matrix".into(),   room_id: "!abc:fsn".into(), room_name: "#general:freesynergy.net".into(), member_count: Some(43) },
-        CachedRoom { platform: "Matrix".into(),   room_id: "!def:fsn".into(), room_name: "#dev:freesynergy.net".into(),     member_count: Some(12) },
-        CachedRoom { platform: "Discord".into(),  room_id: "111".into(),      room_name: "announcements".into(),           member_count: Some(520) },
+        CachedRoom {
+            platform: "Telegram".into(),
+            room_id: "-1001".into(),
+            room_name: "FreeSynergy Community".into(),
+            member_count: Some(1240),
+        },
+        CachedRoom {
+            platform: "Telegram".into(),
+            room_id: "-1002".into(),
+            room_name: "Dev Chat".into(),
+            member_count: Some(87),
+        },
+        CachedRoom {
+            platform: "Matrix".into(),
+            room_id: "!abc:fsn".into(),
+            room_name: "#general:freesynergy.net".into(),
+            member_count: Some(43),
+        },
+        CachedRoom {
+            platform: "Matrix".into(),
+            room_id: "!def:fsn".into(),
+            room_name: "#dev:freesynergy.net".into(),
+            member_count: Some(12),
+        },
+        CachedRoom {
+            platform: "Discord".into(),
+            room_id: "111".into(),
+            room_name: "announcements".into(),
+            member_count: Some(520),
+        },
     ]
 }
 
@@ -21,9 +46,9 @@ fn demo_rooms() -> Vec<CachedRoom> {
 /// Sidebar entry for a collection (or "All Rooms") — single source of truth for active/inactive style.
 #[component]
 fn CollectionSidebarItem(
-    icon:     String,
-    label:    String,
-    active:   bool,
+    icon: String,
+    label: String,
+    active: bool,
     on_click: EventHandler<()>,
 ) -> Element {
     let style = if active {
@@ -51,21 +76,34 @@ trait RoomPredicate {
 
 #[derive(Clone, Default)]
 struct RoomFilter {
-    platform:    String,
-    name:        String,
+    platform: String,
+    name: String,
     min_members: String,
     max_members: String,
 }
 
 impl RoomPredicate for RoomFilter {
     fn matches(&self, room: &CachedRoom) -> bool {
-        if !self.platform.is_empty() && room.platform != self.platform { return false; }
-        if !self.name.is_empty() && !room.room_name.to_lowercase().contains(&self.name.to_lowercase()) { return false; }
+        if !self.platform.is_empty() && room.platform != self.platform {
+            return false;
+        }
+        if !self.name.is_empty()
+            && !room
+                .room_name
+                .to_lowercase()
+                .contains(&self.name.to_lowercase())
+        {
+            return false;
+        }
         if let (Ok(min), Some(cnt)) = (self.min_members.parse::<u32>(), room.member_count) {
-            if cnt < min { return false; }
+            if cnt < min {
+                return false;
+            }
         }
         if let (Ok(max), Some(cnt)) = (self.max_members.parse::<u32>(), room.member_count) {
-            if cnt > max { return false; }
+            if cnt > max {
+                return false;
+            }
         }
         true
     }
@@ -76,23 +114,37 @@ impl RoomPredicate for RoomFilter {
 /// Groups & Collections view inside BotManager.
 #[component]
 pub fn GroupsView() -> Element {
-    let cfg           = GroupsConfig::load();
-    let initial_rooms = if cfg.cached_rooms.is_empty() { demo_rooms() } else { cfg.cached_rooms };
+    let cfg = GroupsConfig::load();
+    let initial_rooms = if cfg.cached_rooms.is_empty() {
+        demo_rooms()
+    } else {
+        cfg.cached_rooms
+    };
 
-    let collections    = use_signal(|| cfg.collections);
-    let rooms          = use_signal(|| initial_rooms);
+    let collections = use_signal(|| cfg.collections);
+    let rooms = use_signal(|| initial_rooms);
     let sel_collection = use_signal(|| None::<u32>);
-    let ctx            = GroupsContext { collections, rooms, sel_collection };
+    let ctx = GroupsContext {
+        collections,
+        rooms,
+        sel_collection,
+    };
     provide_context(ctx.clone());
 
-    let mut filter         = use_signal(RoomFilter::default);
-    let mut new_col_name   = use_signal(String::new);
-    let mut new_col_desc   = use_signal(String::new);
-    let mut show_new_col   = use_signal(|| false);
+    let mut filter = use_signal(RoomFilter::default);
+    let mut new_col_name = use_signal(String::new);
+    let mut new_col_desc = use_signal(String::new);
+    let mut show_new_col = use_signal(|| false);
     let mut selected_rooms: Signal<Vec<(String, String)>> = use_signal(Vec::new);
 
-    let mut platforms: Vec<String> = ctx.rooms.read().iter().map(|r| r.platform.clone()).collect();
-    platforms.sort(); platforms.dedup();
+    let mut platforms: Vec<String> = ctx
+        .rooms
+        .read()
+        .iter()
+        .map(|r| r.platform.clone())
+        .collect();
+    platforms.sort();
+    platforms.dedup();
 
     rsx! {
         div { style: "display: flex; gap: 20px; height: 100%; overflow: hidden;",

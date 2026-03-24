@@ -1,7 +1,7 @@
-use dioxus::prelude::*;
-use chrono::Utc;
 use crate::components::EmptyState;
 use crate::model::{ApprovalAction, MessagingBot, PendingApproval};
+use chrono::Utc;
+use dioxus::prelude::*;
 
 #[component]
 pub fn GatekeeperView(bot: MessagingBot, on_update: EventHandler<MessagingBot>) -> Element {
@@ -37,13 +37,17 @@ pub fn GatekeeperView(bot: MessagingBot, on_update: EventHandler<MessagingBot>) 
 
 #[component]
 fn ApprovalRow(
-    approval:  PendingApproval,
-    bot:       MessagingBot,
+    approval: PendingApproval,
+    bot: MessagingBot,
     on_update: EventHandler<MessagingBot>,
 ) -> Element {
-    let secs    = (Utc::now() - approval.waiting_since).num_seconds();
-    let waiting = if secs < 60 { format!("{secs}s") } else { format!("{}m", secs / 60) };
-    let id      = approval.id.clone();
+    let secs = (Utc::now() - approval.waiting_since).num_seconds();
+    let waiting = if secs < 60 {
+        format!("{secs}s")
+    } else {
+        format!("{}m", secs / 60)
+    };
+    let id = approval.id.clone();
 
     rsx! {
         div {

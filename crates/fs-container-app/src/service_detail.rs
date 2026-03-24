@@ -119,9 +119,9 @@ fn ServiceStatusBadge(service_name: String) -> Element {
     }
 
     let active = state.read().clone();
-    let label  = active.status_label();
-    let color  = active.status_color();
-    let bg     = active.status_bg();
+    let label = active.status_label();
+    let color = active.status_color();
+    let bg = active.status_bg();
 
     rsx! {
         span {
@@ -189,9 +189,9 @@ fn ServiceConfigTab(service_name: String) -> Element {
 
 #[component]
 fn ActionBtn(
-    label:  String,
-    color:  String,
-    name:   String,
+    label: String,
+    color: String,
+    name: String,
     action: ServiceAction,
     mut msg: Signal<Option<String>>,
 ) -> Element {
@@ -237,8 +237,8 @@ fn EnvEditor(service_name: String) -> Element {
 
     let env_path_str = env_path.to_string_lossy().into_owned();
 
-    let mut content: Signal<String>       = use_signal(String::new);
-    let mut loaded:  Signal<bool>         = use_signal(|| false);
+    let mut content: Signal<String> = use_signal(String::new);
+    let mut loaded: Signal<bool> = use_signal(|| false);
     let mut save_msg: Signal<Option<String>> = use_signal(|| None);
 
     // Load once
@@ -323,13 +323,21 @@ fn EnvEditor(service_name: String) -> Element {
 
 #[component]
 fn DetailTabBtn(label: String, active: bool, onclick: EventHandler<MouseEvent>) -> Element {
-    let bg     = if active { "var(--fs-bg-elevated)" } else { "transparent" };
+    let bg = if active {
+        "var(--fs-bg-elevated)"
+    } else {
+        "transparent"
+    };
     let border = if active {
         "border-bottom: 2px solid var(--fs-color-primary);"
     } else {
         "border-bottom: 2px solid transparent;"
     };
-    let color  = if active { "var(--fs-text-primary)" } else { "var(--fs-text-muted)" };
+    let color = if active {
+        "var(--fs-text-primary)"
+    } else {
+        "var(--fs-text-muted)"
+    };
 
     rsx! {
         button {

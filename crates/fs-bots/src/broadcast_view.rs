@@ -1,6 +1,6 @@
-use dioxus::prelude::*;
 use crate::components::{ListRow, ListRowContent};
 use crate::model::{BroadcastRecord, ChannelTarget, MessagingBot};
+use dioxus::prelude::*;
 
 // ── ListRowContent impls ───────────────────────────────────────────────────────
 
@@ -15,7 +15,9 @@ impl ListRowContent for ChannelTarget {
             span { style: "color: var(--fs-color-text-primary);", "{self.name}" }
         }
     }
-    fn row_trailing(&self) -> Element { rsx! { } }
+    fn row_trailing(&self) -> Element {
+        rsx! {}
+    }
 }
 
 impl ListRowContent for BroadcastRecord {
@@ -23,7 +25,7 @@ impl ListRowContent for BroadcastRecord {
         rsx! { span { "📤" } }
     }
     fn row_body(&self) -> Element {
-        let preview  = self.preview(50);
+        let preview = self.preview(50);
         let time_ago = self.time_ago();
         rsx! {
             span {
@@ -44,8 +46,8 @@ impl ListRowContent for BroadcastRecord {
 #[component]
 pub fn BroadcastView(bot: MessagingBot, on_update: EventHandler<MessagingBot>) -> Element {
     let mut message = use_signal(String::new);
-    let targets      = bot.targets.clone();
-    let recent       = bot.recent_broadcasts.clone();
+    let targets = bot.targets.clone();
+    let recent = bot.recent_broadcasts.clone();
     let enabled_count = targets.iter().filter(|t| t.enabled).count();
 
     rsx! {

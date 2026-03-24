@@ -20,7 +20,6 @@ or be embedded by `fs-gui-workspace` in the desktop.
 
 | Crate | Description |
 |---|---|
-| `fs-store-app` | Store frontend — package discovery, install, updates |
 | `fs-browser` | Embedded web browser with tabs, bookmarks, S3 downloads |
 | `fs-lenses` | Aggregated cross-service data views |
 | `fs-theme-app` | Theme manager — colors, cursors, chrome |

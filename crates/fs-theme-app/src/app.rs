@@ -19,9 +19,9 @@ pub enum ThemeSection {
 
 /// Display properties for a `ThemeSection` variant — single source of truth.
 struct SectionMeta {
-    id:       &'static str,
-    label:    &'static str,
-    icon:     &'static str,
+    id: &'static str,
+    label: &'static str,
+    icon: &'static str,
 }
 
 const ALL_SECTIONS: &[ThemeSection] = &[
@@ -35,16 +35,38 @@ impl ThemeSection {
     /// Single match block — all display properties in one place.
     fn meta(&self) -> SectionMeta {
         match self {
-            Self::Themes => SectionMeta { id: "themes", label: "theme.section.themes", icon: "🎨" },
-            Self::Colors => SectionMeta { id: "colors", label: "theme.section.colors", icon: "🖌" },
-            Self::Cursor => SectionMeta { id: "cursor", label: "theme.section.cursor", icon: "🖱" },
-            Self::Chrome => SectionMeta { id: "chrome", label: "theme.section.chrome", icon: "🪟" },
+            Self::Themes => SectionMeta {
+                id: "themes",
+                label: "theme.section.themes",
+                icon: "🎨",
+            },
+            Self::Colors => SectionMeta {
+                id: "colors",
+                label: "theme.section.colors",
+                icon: "🖌",
+            },
+            Self::Cursor => SectionMeta {
+                id: "cursor",
+                label: "theme.section.cursor",
+                icon: "🖱",
+            },
+            Self::Chrome => SectionMeta {
+                id: "chrome",
+                label: "theme.section.chrome",
+                icon: "🪟",
+            },
         }
     }
 
-    pub fn id(&self)    -> &str    { self.meta().id }
-    pub fn icon(&self)  -> &str    { self.meta().icon }
-    pub fn label(&self) -> String  { fs_i18n::t(self.meta().label).to_string() }
+    pub fn id(&self) -> &str {
+        self.meta().id
+    }
+    pub fn icon(&self) -> &str {
+        self.meta().icon
+    }
+    pub fn label(&self) -> String {
+        fs_i18n::t(self.meta().label).to_string()
+    }
 
     /// No match needed — delegates to `id()` via ALL_SECTIONS.
     pub fn from_id(id: &str) -> Option<Self> {
@@ -57,7 +79,8 @@ impl ThemeSection {
 pub fn ThemeManagerApp() -> Element {
     let mut active = use_signal(|| ThemeSection::Themes);
 
-    let sidebar_items: Vec<SidebarItem> = ALL_SECTIONS.iter()
+    let sidebar_items: Vec<SidebarItem> = ALL_SECTIONS
+        .iter()
         .map(|s| SidebarItem::new(s.id(), s.icon(), s.label()))
         .collect();
 

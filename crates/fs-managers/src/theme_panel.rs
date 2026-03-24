@@ -7,11 +7,12 @@ use crate::picker_panel::{PickerItem, PickerPanel};
 
 #[component]
 pub fn ThemeManagerPanel() -> Element {
-    let mgr   = ThemeManager::with_noop();
-    let items: Vec<PickerItem> = mgr.available()
+    let mgr = ThemeManager::with_noop();
+    let items: Vec<PickerItem> = mgr
+        .available()
         .into_iter()
         .map(|t| {
-            let icon  = if t.is_dark { "🌙" } else { "☀" };
+            let icon = if t.is_dark { "🌙" } else { "☀" };
             let badge = if t.is_dark { "Dark" } else { "Light" };
             PickerItem::new(t.id, t.display_name)
                 .with_icon(icon)

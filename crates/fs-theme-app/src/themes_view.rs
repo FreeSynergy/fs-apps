@@ -3,14 +3,23 @@ use dioxus::prelude::*;
 
 #[derive(Clone, PartialEq)]
 struct ThemeEntry {
-    name:  &'static str,
+    name: &'static str,
     color: &'static str,
 }
 
 const DEMO_THEMES: &[ThemeEntry] = &[
-    ThemeEntry { name: "Midnight Blue", color: "#0f172a" },
-    ThemeEntry { name: "Cloud White",   color: "#f8fafc" },
-    ThemeEntry { name: "Nordic Dark",   color: "#2e3440" },
+    ThemeEntry {
+        name: "Midnight Blue",
+        color: "#0f172a",
+    },
+    ThemeEntry {
+        name: "Cloud White",
+        color: "#f8fafc",
+    },
+    ThemeEntry {
+        name: "Nordic Dark",
+        color: "#2e3440",
+    },
 ];
 
 #[component]
@@ -41,9 +50,9 @@ pub fn ThemesView() -> Element {
 
 #[component]
 fn ThemeCard(
-    name:        &'static str,
-    color:       &'static str,
-    is_active:   bool,
+    name: &'static str,
+    color: &'static str,
+    is_active: bool,
     on_activate: EventHandler<()>,
 ) -> Element {
     let border = if is_active {

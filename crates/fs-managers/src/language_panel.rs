@@ -49,8 +49,8 @@ enum Tab {
 impl Tab {
     fn label(&self) -> String {
         match self {
-            Self::Info    => fs_i18n::t("managers.language.tab_info").to_string(),
-            Self::Config  => fs_i18n::t("managers.language.tab_config").to_string(),
+            Self::Info => fs_i18n::t("managers.language.tab_info").to_string(),
+            Self::Config => fs_i18n::t("managers.language.tab_config").to_string(),
             Self::Builder => fs_i18n::t("managers.language.tab_builder").to_string(),
         }
     }
@@ -60,7 +60,7 @@ impl Tab {
 
 #[component]
 pub fn LanguageManagerPanel() -> Element {
-    let mgr       = LanguageManager::new();
+    let mgr = LanguageManager::new();
     let active_id = mgr.active().id.clone();
     let subscribed = mgr.available(); // subscribed + built-ins + installed packs
 
@@ -68,11 +68,14 @@ pub fn LanguageManagerPanel() -> Element {
     let initial_view = if subscribed.iter().any(|l| l.id == active_id) {
         View::Language(active_id.clone())
     } else {
-        subscribed.first().map(|l| View::Language(l.id.clone())).unwrap_or(View::Subscribe)
+        subscribed
+            .first()
+            .map(|l| View::Language(l.id.clone()))
+            .unwrap_or(View::Subscribe)
     };
 
-    let mut view     = use_signal(|| initial_view);
-    let mut active   = use_signal(|| active_id);
+    let mut view = use_signal(|| initial_view);
+    let mut active = use_signal(|| active_id);
     let mut feedback = use_signal(String::new);
 
     rsx! {
@@ -147,15 +150,14 @@ pub fn LanguageManagerPanel() -> Element {
 
 #[component]
 fn LanguageSidebar(
-    subscribed:   Vec<fs_manager_language::Language>,
-    active_id:    String,
-    view:         View,
-    on_select:    EventHandler<String>,
+    subscribed: Vec<fs_manager_language::Language>,
+    active_id: String,
+    view: View,
+    on_select: EventHandler<String>,
     on_subscribe: EventHandler<()>,
-    on_formats:   EventHandler<()>,
+    on_formats: EventHandler<()>,
 ) -> Element {
-    let sidebar_style =
-        "width: 220px; flex-shrink: 0; display: flex; flex-direction: column; \
+    let sidebar_style = "width: 220px; flex-shrink: 0; display: flex; flex-direction: column; \
          overflow: hidden; \
          background: var(--fs-color-bg-surface, #0f172a); \
          border-right: 1px solid var(--fs-color-border-default, #334155);";
@@ -331,10 +333,10 @@ fn LanguageSidebar(
 
 #[component]
 fn LanguageDetailPane(
-    lang:           Option<fs_manager_language::Language>,
-    active_id:      String,
-    feedback:       String,
-    on_set_active:  EventHandler<()>,
+    lang: Option<fs_manager_language::Language>,
+    active_id: String,
+    feedback: String,
+    on_set_active: EventHandler<()>,
     on_unsubscribe: EventHandler<String>,
 ) -> Element {
     let Some(lang) = lang else {
@@ -348,10 +350,10 @@ fn LanguageDetailPane(
     };
 
     let mut active_tab = use_signal(Tab::default);
-    let is_active      = lang.id == active_id;
-    let has_flag       = !lang.flag_svg().is_empty();
-    let flag_html      = lang.flag_svg().to_string();
-    let meta           = lang.meta();
+    let is_active = lang.id == active_id;
+    let has_flag = !lang.flag_svg().is_empty();
+    let flag_html = lang.flag_svg().to_string();
+    let meta = lang.meta();
 
     rsx! {
         div { style: "display: flex; flex-direction: column; height: 100%; overflow: hidden;",
@@ -417,8 +419,8 @@ fn LanguageDetailPane(
                             meta_continent: meta.map(|m| m.continent).unwrap_or(""),
                             pack_count: LanguageManager::new().registry()
                                             .packs_for_lang(&lang.id).len(),
-                            on_set_active: on_set_active.clone(),
-                            on_unsubscribe: on_unsubscribe.clone(),
+                            on_set_active,
+                            on_unsubscribe,
                         }
                     },
                     Tab::Config => rsx! {
@@ -439,21 +441,21 @@ fn LanguageDetailPane(
 
 #[component]
 fn InfoTab(
-    lang:           fs_manager_language::Language,
-    is_active:      bool,
-    has_flag:       bool,
-    flag_html:      String,
-    meta_name:      &'static str,
-    meta_script:    &'static str,
-    meta_family:    &'static str,
+    lang: fs_manager_language::Language,
+    is_active: bool,
+    has_flag: bool,
+    flag_html: String,
+    meta_name: &'static str,
+    meta_script: &'static str,
+    meta_family: &'static str,
     meta_continent: &'static str,
-    pack_count:     usize,
-    on_set_active:  EventHandler<()>,
+    pack_count: usize,
+    on_set_active: EventHandler<()>,
     on_unsubscribe: EventHandler<String>,
 ) -> Element {
-    let mgr           = LanguageManager::new();
-    let registry      = mgr.registry();
-    let installed     = registry.packs_for_lang(&lang.id);
+    let mgr = LanguageManager::new();
+    let registry = mgr.registry();
+    let installed = registry.packs_for_lang(&lang.id);
     let lang_id_unsub = lang.id.clone();
 
     rsx! {
@@ -633,19 +635,19 @@ fn MetaRow(label: String, value: String) -> Element {
 
 #[component]
 fn ConfigTab() -> Element {
-    let mgr      = LanguageManager::new();
+    let mgr = LanguageManager::new();
     let settings = mgr.effective_settings();
 
-    let mut date_fmt   = use_signal(|| settings.date_format.clone());
-    let mut time_fmt   = use_signal(|| settings.time_format.clone());
-    let mut num_fmt    = use_signal(|| settings.number_format.clone());
-    let mut auto_upd   = use_signal(|| settings.auto_update_packs);
-    let mut saved      = use_signal(|| false);
+    let mut date_fmt = use_signal(|| settings.date_format.clone());
+    let mut time_fmt = use_signal(|| settings.time_format.clone());
+    let mut num_fmt = use_signal(|| settings.number_format.clone());
+    let mut auto_upd = use_signal(|| settings.auto_update_packs);
+    let mut saved = use_signal(|| false);
 
     // Example values for preview
     let date_example = date_fmt.read().format(2026, 3, 19);
     let time_example = time_fmt.read().format(14, 30);
-    let num_example  = num_fmt.read().format_decimal(1234.56, 2);
+    let num_example = num_fmt.read().format_decimal(1234.56, 2);
 
     rsx! {
         div { style: "max-width: 540px;",
@@ -842,9 +844,7 @@ fn BuilderTab(lang_id: String) -> Element {
     use fs_manager_language::GitContributorCheck;
 
     let status = use_memo(move || {
-        GitContributorCheck::cached().unwrap_or(
-            fs_manager_language::ContributorStatus::Unknown
-        )
+        GitContributorCheck::cached().unwrap_or(fs_manager_language::ContributorStatus::Unknown)
     });
 
     rsx! {
@@ -917,12 +917,9 @@ fn BuilderTab(lang_id: String) -> Element {
 // ── Subscribe view ────────────────────────────────────────────────────────────
 
 #[component]
-fn SubscribeView(
-    subscribed_ids: Vec<String>,
-    on_subscribed:  EventHandler<String>,
-) -> Element {
+fn SubscribeView(subscribed_ids: Vec<String>, on_subscribed: EventHandler<String>) -> Element {
     let all_languages = fs_i18n::all_languages();
-    let mut search    = use_signal(String::new);
+    let mut search = use_signal(String::new);
 
     rsx! {
         div { style: "padding: 24px 28px; max-width: 560px;",

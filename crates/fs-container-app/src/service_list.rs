@@ -15,12 +15,11 @@ use crate::status::UnitActiveStateDisplay;
 /// A single service entry displayed in the list.
 #[derive(Clone, Debug, PartialEq)]
 pub struct ServiceEntry {
-    pub name:        String,
-    pub active:      UnitActiveState,
-    pub sub_state:   String,
+    pub name: String,
+    pub active: UnitActiveState,
+    pub sub_state: String,
     pub description: String,
 }
-
 
 /// Container lifecycle action.
 ///
@@ -37,8 +36,8 @@ impl ServiceAction {
     /// Execute this action against `name` via `mgr`.
     pub async fn execute(&self, mgr: &SystemctlManager, name: &str) -> Result<(), FsError> {
         match self {
-            Self::Start   => mgr.start(name).await,
-            Self::Stop    => mgr.stop(name).await,
+            Self::Start => mgr.start(name).await,
+            Self::Stop => mgr.stop(name).await,
             Self::Restart => mgr.restart(name).await,
         }
     }
@@ -50,7 +49,14 @@ impl ServiceAction {
 /// covers both Podman Quadlet-generated units and manually registered services.
 pub async fn list_fs_units() -> Vec<String> {
     let Ok(out) = tokio::process::Command::new("systemctl")
-        .args(["--user", "list-units", "--type=service", "--no-legend", "--plain", "--all"])
+        .args([
+            "--user",
+            "list-units",
+            "--type=service",
+            "--no-legend",
+            "--plain",
+            "--all",
+        ])
         .output()
         .await
     else {
@@ -90,15 +96,15 @@ pub fn ServiceList(mut selected: Signal<Option<String>>) -> Element {
                 for unit in &units {
                     match mgr.service_status(unit).await {
                         Ok(s) => entries.push(ServiceEntry {
-                            name:        s.name.clone(),
-                            active:      s.active_state.clone(),
-                            sub_state:   s.sub_state.clone(),
+                            name: s.name.clone(),
+                            active: s.active_state.clone(),
+                            sub_state: s.sub_state.clone(),
                             description: s.description.clone(),
                         }),
                         Err(_) => entries.push(ServiceEntry {
-                            name:        unit.clone(),
-                            active:      UnitActiveState::Unknown,
-                            sub_state:   String::new(),
+                            name: unit.clone(),
+                            active: UnitActiveState::Unknown,
+                            sub_state: String::new(),
                             description: String::new(),
                         }),
                     }
@@ -193,7 +199,10 @@ fn ServiceAccordionGroup(
 ) -> Element {
     let mut expanded = use_signal(|| true);
     let count = entries.len();
-    let running = entries.iter().filter(|e| e.active == UnitActiveState::Active).count();
+    let running = entries
+        .iter()
+        .filter(|e| e.active == UnitActiveState::Active)
+        .count();
     let icon = if *expanded.read() { "▾" } else { "▸" };
 
     rsx! {

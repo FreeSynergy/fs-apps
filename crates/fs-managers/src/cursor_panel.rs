@@ -18,15 +18,16 @@ pub fn CursorManagerPanel() -> Element {
     let icons_root = std::path::PathBuf::from(
         std::env::var("FS_ICONS_ROOT").unwrap_or_else(|_| "../FreeSynergy.Icons".into()),
     );
-    let mgr = CursorManager::new(icons_root, vec![
-        CursorRepository {
-            id:      "freesynergy-icons".into(),
-            name:    "FreeSynergy Icons".into(),
-            url:     "https://github.com/FreeSynergy/Icons".into(),
+    let mgr = CursorManager::new(
+        icons_root,
+        vec![CursorRepository {
+            id: "freesynergy-icons".into(),
+            name: "FreeSynergy Icons".into(),
+            url: "https://github.com/FreeSynergy/Icons".into(),
             enabled: true,
             builtin: true,
-        },
-    ]);
+        }],
+    );
     let sets = mgr.sets();
 
     let first_view = sets
@@ -34,8 +35,8 @@ pub fn CursorManagerPanel() -> Element {
         .map(|s| View::SetDetail(s.id.clone()))
         .unwrap_or(View::NewSet);
 
-    let mut view     = use_signal(|| first_view);
-    let mut active   = use_signal(|| sets.first().map(|s| s.id.clone()).unwrap_or_default());
+    let mut view = use_signal(|| first_view);
+    let mut active = use_signal(|| sets.first().map(|s| s.id.clone()).unwrap_or_default());
     let mut feedback = use_signal(String::new);
 
     rsx! {
@@ -74,7 +75,7 @@ pub fn CursorManagerPanel() -> Element {
                                 .unwrap_or_else(|_| "../FreeSynergy.Icons".into()),
                             on_activate: move |_| {
                                 active.set(id.clone());
-                                feedback.set(format!("Cursor set activated."));
+                                feedback.set("Cursor set activated.".to_string());
                             },
                         }
                     },
@@ -271,7 +272,7 @@ fn SetDetailView(
     };
 
     let is_active = set_id == active_id;
-    let missing   = set.missing_required();
+    let missing = set.missing_required();
 
     // Key preview slots (the 6 most prominent ones)
     let preview_slots = [
@@ -454,27 +455,29 @@ fn SetDetailView(
 // ── New Set form ──────────────────────────────────────────────────────────────
 
 #[component]
-fn NewSetView(
-    icons_root: String,
-    feedback: String,
-    on_saved: EventHandler<String>,
-) -> Element {
-    let mut f_id          = use_signal(String::new);
-    let mut f_name        = use_signal(String::new);
+fn NewSetView(icons_root: String, feedback: String, on_saved: EventHandler<String>) -> Element {
+    let mut f_id = use_signal(String::new);
+    let mut f_name = use_signal(String::new);
     let mut f_description = use_signal(String::new);
-    let mut f_author      = use_signal(String::new);
-    let mut f_version     = use_signal(|| "1.0.0".to_string());
-    let mut error         = use_signal(String::new);
+    let mut f_author = use_signal(String::new);
+    let mut f_version = use_signal(|| "1.0.0".to_string());
+    let mut error = use_signal(String::new);
 
     // Per-slot: SVG path + hotspot X/Y
     // Stored as parallel arrays indexed by CursorSlot::all() order.
     let slot_count = CursorSlot::all().len();
-    let mut svg_paths  = use_signal(|| vec![String::new(); slot_count]);
+    let mut svg_paths = use_signal(|| vec![String::new(); slot_count]);
     let mut hotspot_xs = use_signal(|| {
-        CursorSlot::all().iter().map(|s| s.default_hotspot().0.to_string()).collect::<Vec<_>>()
+        CursorSlot::all()
+            .iter()
+            .map(|s| s.default_hotspot().0.to_string())
+            .collect::<Vec<_>>()
     });
     let mut hotspot_ys = use_signal(|| {
-        CursorSlot::all().iter().map(|s| s.default_hotspot().1.to_string()).collect::<Vec<_>>()
+        CursorSlot::all()
+            .iter()
+            .map(|s| s.default_hotspot().1.to_string())
+            .collect::<Vec<_>>()
     });
 
     let icons_root_cloned = icons_root.clone();

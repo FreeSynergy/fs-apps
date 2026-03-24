@@ -75,7 +75,7 @@ pub fn PickerPanel(
     on_apply: EventHandler<String>,
 ) -> Element {
     let mut selected = use_signal(|| active_id.clone());
-    let mut saved    = use_signal(|| false);
+    let mut saved = use_signal(|| false);
 
     rsx! {
         div {

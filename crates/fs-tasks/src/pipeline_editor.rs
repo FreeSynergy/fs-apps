@@ -1,5 +1,5 @@
-use dioxus::prelude::*;
 use crate::model::{DataTrigger, FieldMapping, TaskPipeline};
+use dioxus::prelude::*;
 
 #[component]
 pub fn PipelineEditor(
@@ -7,11 +7,11 @@ pub fn PipelineEditor(
     on_save: EventHandler<TaskPipeline>,
     on_cancel: EventHandler<()>,
 ) -> Element {
-    let mut name    = use_signal(|| pipeline.name.clone());
+    let mut name = use_signal(|| pipeline.name.clone());
     let mut trigger = use_signal(|| pipeline.trigger.clone());
-    let mappings    = pipeline.mappings.clone();
-    let source      = pipeline.source.clone();
-    let target      = pipeline.target.clone();
+    let mappings = pipeline.mappings.clone();
+    let source = pipeline.source.clone();
+    let target = pipeline.target.clone();
 
     rsx! {
         div { style: "display: flex; flex-direction: column; gap: 16px;",
@@ -134,8 +134,8 @@ fn MappingRow(mapping: FieldMapping) -> Element {
 
 #[component]
 fn TriggerSelector(trigger: DataTrigger, on_change: EventHandler<DataTrigger>) -> Element {
-    let is_manual    = matches!(trigger, DataTrigger::Manual);
-    let is_on_event  = matches!(trigger, DataTrigger::OnEvent(_));
+    let is_manual = matches!(trigger, DataTrigger::Manual);
+    let is_on_event = matches!(trigger, DataTrigger::OnEvent(_));
     let is_scheduled = matches!(trigger, DataTrigger::Scheduled(_));
 
     rsx! {
@@ -150,7 +150,11 @@ fn TriggerSelector(trigger: DataTrigger, on_change: EventHandler<DataTrigger>) -
 #[component]
 fn TriggerOption(label: &'static str, selected: bool, on_select: EventHandler<()>) -> Element {
     let radio = if selected { "●" } else { "○" };
-    let color = if selected { "var(--fs-color-primary)" } else { "var(--fs-color-text-muted)" };
+    let color = if selected {
+        "var(--fs-color-primary)"
+    } else {
+        "var(--fs-color-text-muted)"
+    };
     rsx! {
         div {
             onclick: move |_| on_select.call(()),

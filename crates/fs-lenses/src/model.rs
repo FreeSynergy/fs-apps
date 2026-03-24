@@ -25,36 +25,36 @@ impl LensRole {
     /// affected by `Debug` format changes or custom `Debug` impls.
     pub fn id(&self) -> String {
         match self {
-            Self::Wiki     => "wiki".to_string(),
-            Self::Chat     => "chat".to_string(),
-            Self::Git      => "git".to_string(),
-            Self::Map      => "map".to_string(),
-            Self::Tasks    => "tasks".to_string(),
-            Self::Iam      => "iam".to_string(),
+            Self::Wiki => "wiki".to_string(),
+            Self::Chat => "chat".to_string(),
+            Self::Git => "git".to_string(),
+            Self::Map => "map".to_string(),
+            Self::Tasks => "tasks".to_string(),
+            Self::Iam => "iam".to_string(),
             Self::Other(s) => format!("other:{s}"),
         }
     }
 
     pub fn icon(&self) -> &str {
         match self {
-            Self::Wiki  => "📖",
-            Self::Chat  => "💬",
-            Self::Git   => "🔀",
-            Self::Map   => "🗺",
+            Self::Wiki => "📖",
+            Self::Chat => "💬",
+            Self::Git => "🔀",
+            Self::Map => "🗺",
             Self::Tasks => "✅",
-            Self::Iam   => "🔑",
+            Self::Iam => "🔑",
             Self::Other(_) => "📄",
         }
     }
 
     pub fn label(&self) -> String {
         match self {
-            Self::Wiki  => fs_i18n::t("lenses.item.role_wiki").to_string(),
-            Self::Chat  => fs_i18n::t("lenses.item.role_chat").to_string(),
-            Self::Git   => fs_i18n::t("lenses.item.role_git").to_string(),
-            Self::Map   => fs_i18n::t("lenses.item.role_map").to_string(),
+            Self::Wiki => fs_i18n::t("lenses.item.role_wiki").to_string(),
+            Self::Chat => fs_i18n::t("lenses.item.role_chat").to_string(),
+            Self::Git => fs_i18n::t("lenses.item.role_git").to_string(),
+            Self::Map => fs_i18n::t("lenses.item.role_map").to_string(),
             Self::Tasks => fs_i18n::t("lenses.item.role_tasks").to_string(),
-            Self::Iam   => fs_i18n::t("lenses.item.role_iam").to_string(),
+            Self::Iam => fs_i18n::t("lenses.item.role_iam").to_string(),
             Self::Other(r) => r.clone(),
         }
     }
@@ -95,12 +95,12 @@ pub struct Lens {
 impl Lens {
     pub fn new(name: impl Into<String>, query: impl Into<String>) -> Self {
         Self {
-            id:             chrono::Utc::now().timestamp_millis(),
-            name:           name.into(),
-            query:          query.into(),
-            items:          Vec::new(),
+            id: chrono::Utc::now().timestamp_millis(),
+            name: name.into(),
+            query: query.into(),
+            items: Vec::new(),
             last_refreshed: None,
-            loading:        false,
+            loading: false,
         }
     }
 
@@ -113,7 +113,8 @@ impl Lens {
             let key = item.role.id();
             map.entry(key)
                 .or_insert_with(|| (item.role.clone(), Vec::new()))
-                .1.push(item);
+                .1
+                .push(item);
         }
         map.into_values().collect()
     }

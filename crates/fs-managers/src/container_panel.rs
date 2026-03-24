@@ -5,7 +5,7 @@ use fs_manager_container::{AppStatus, ContainerManager};
 
 #[component]
 pub fn ContainerManagerPanel() -> Element {
-    let mgr       = ContainerManager::with_noop();
+    let mgr = ContainerManager::with_noop();
     let installed = use_signal(|| mgr.installed());
 
     rsx! {

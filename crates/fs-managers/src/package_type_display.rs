@@ -22,29 +22,29 @@ pub trait PackageTypeDisplay {
 impl PackageTypeDisplay for PackageType {
     fn display_label(&self) -> &'static str {
         match self {
-            PackageType::App       => "App",
+            PackageType::App => "App",
             PackageType::Container => "Container",
-            PackageType::Bundle    => "Bundle",
-            PackageType::Language  => "Language",
-            PackageType::Theme     => "Theme",
-            PackageType::Widget    => "Widget",
-            PackageType::Bot       => "Bot",
-            PackageType::Bridge    => "Bridge",
-            PackageType::Task      => "Task",
+            PackageType::Bundle => "Bundle",
+            PackageType::Language => "Language",
+            PackageType::Theme => "Theme",
+            PackageType::Widget => "Widget",
+            PackageType::Bot => "Bot",
+            PackageType::Bridge => "Bridge",
+            PackageType::Task => "Task",
         }
     }
 
     fn type_css(&self) -> &'static str {
         match self {
-            PackageType::App       => "fs-type--app",
+            PackageType::App => "fs-type--app",
             PackageType::Container => "fs-type--container",
-            PackageType::Bundle    => "fs-type--bundle",
-            PackageType::Language  => "fs-type--language",
-            PackageType::Theme     => "fs-type--theme",
-            PackageType::Widget    => "fs-type--widget",
-            PackageType::Bot       => "fs-type--bot",
-            PackageType::Bridge    => "fs-type--bridge",
-            PackageType::Task      => "fs-type--task",
+            PackageType::Bundle => "fs-type--bundle",
+            PackageType::Language => "fs-type--language",
+            PackageType::Theme => "fs-type--theme",
+            PackageType::Widget => "fs-type--widget",
+            PackageType::Bot => "fs-type--bot",
+            PackageType::Bridge => "fs-type--bridge",
+            PackageType::Task => "fs-type--task",
         }
     }
 }
