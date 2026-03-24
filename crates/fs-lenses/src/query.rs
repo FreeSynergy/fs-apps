@@ -79,8 +79,3 @@ impl LensQueryEngine {
     }
 }
 
-// ── Public shim ───────────────────────────────────────────────────────────────
-
-pub async fn refresh_lens(lens: &Lens) -> Vec<LensItem> {
-    LensQueryEngine.refresh_lens(lens).await
-}

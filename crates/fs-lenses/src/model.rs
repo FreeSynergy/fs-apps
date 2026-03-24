@@ -19,6 +19,22 @@ pub enum LensRole {
 }
 
 impl LensRole {
+    /// Returns a stable, rename-safe string key for this role.
+    ///
+    /// Used as a `BTreeMap` key in `Lens::grouped()` so that grouping is not
+    /// affected by `Debug` format changes or custom `Debug` impls.
+    pub fn id(&self) -> String {
+        match self {
+            Self::Wiki     => "wiki".to_string(),
+            Self::Chat     => "chat".to_string(),
+            Self::Git      => "git".to_string(),
+            Self::Map      => "map".to_string(),
+            Self::Tasks    => "tasks".to_string(),
+            Self::Iam      => "iam".to_string(),
+            Self::Other(s) => format!("other:{s}"),
+        }
+    }
+
     pub fn icon(&self) -> &str {
         match self {
             Self::Wiki  => "📖",
@@ -94,7 +110,7 @@ impl Lens {
             std::collections::BTreeMap::new();
 
         for item in &self.items {
-            let key = format!("{:?}", item.role);
+            let key = item.role.id();
             map.entry(key)
                 .or_insert_with(|| (item.role.clone(), Vec::new()))
                 .1.push(item);

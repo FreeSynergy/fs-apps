@@ -24,7 +24,6 @@ or be embedded by `fs-gui-workspace` in the desktop.
 | `fs-browser` | Embedded web browser with tabs, bookmarks, S3 downloads |
 | `fs-lenses` | Aggregated cross-service data views |
 | `fs-theme-app` | Theme manager — colors, cursors, chrome |
-| `fs-builder` | Container builder, Bridge builder, i18n editor, resource browser |
 | `fs-tasks` | Task manager and pipeline editor |
 | `fs-bots` | Bot management UI |
 | `fs-ai` | AI assistant app |

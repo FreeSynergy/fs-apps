@@ -257,12 +257,43 @@ async fn install_app_binary(package: &PackageEntry, installed_by: Option<&str>) 
     Ok(None)
 }
 
+/// Static table mapping known catalog IDs to `(repo_dir, binary_name)`.
+///
+/// Each entry covers all catalog-path aliases for the same binary.
+/// Repos live at `~/Server/<repo_dir>/` (kebab-case, `fs-` prefix).
+/// Add a new row here whenever a new locally-built package is registered.
+static LOCAL_BUILD_BINARIES: &[(&str, &str, &str)] = &[
+    // (package_id,           repo_dir,     binary_name)
+    ("node",                  "fs-node",    "fsn"),
+    ("apps/fs-node",          "fs-node",    "fsn"),
+    ("desktop",               "fs-desktop", "fs-desktop"),
+    ("apps/fs-desktop",       "fs-desktop", "fs-desktop"),
+    ("apps/fs-store-app",     "fs-desktop", "fs-desktop"),
+    ("init",                  "fs-init",    "fs-init"),
+    ("apps/fs-init",          "fs-init",    "fs-init"),
+    ("browser",               "fs-browser", "fs-browser"),
+    ("apps/fs-browser",       "fs-browser", "fs-browser"),
+    ("browser/fs-browser",    "fs-browser", "fs-browser"),
+];
+
+/// Look up `(repo_dir, binary_name)` for a known catalog ID.
+///
+/// Returns `None` when the ID is not in the static table; callers fall back
+/// to deriving the names from the ID string itself.
+fn lookup_local_build_binary(id: &str) -> Option<(&'static str, &'static str)> {
+    LOCAL_BUILD_BINARIES
+        .iter()
+        .find(|(pkg_id, _, _)| *pkg_id == id)
+        .map(|(_, repo, bin)| (*repo, *bin))
+}
+
 /// Try to locate a locally compiled binary for a package.
 ///
 /// Checks (in order):
-///   1. `FS_BIN_{ID_UPPER}` env var
-///   2. `~/Server/FreeSynergy.{Title}/target/release/{binary}`
-///   3. `~/Server/FreeSynergy.{Title}/target/debug/{binary}`
+///   1. `FS_BIN_{ID_UPPER}` env var — explicit override
+///   2. Static table lookup → `~/Server/<repo>/target/release/<binary>`
+///   3. Static table lookup → `~/Server/<repo>/target/debug/<binary>`
+///   4. Derived from ID slug  → same release/debug search
 fn find_local_build_binary(id: &str) -> Option<String> {
     let env_key = format!("FS_BIN_{}", id.to_uppercase().replace('-', "_"));
     if let Ok(path) = std::env::var(&env_key) {
@@ -274,17 +305,7 @@ fn find_local_build_binary(id: &str) -> Option<String> {
     let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
     let base = std::path::PathBuf::from(&home).join("Server");
 
-    // Map known catalog IDs → (repo dir name, binary name).
-    // Repos live at ~/Server/fs-{name}/ (kebab-case).
-    let known: Option<(&str, &str)> = match id {
-        "node"    | "apps/fs-node"                           => Some(("fs-node",    "fsn")),
-        "desktop" | "apps/fs-desktop" | "apps/fs-store-app" => Some(("fs-desktop", "fs-desktop")),
-        "init"    | "apps/fs-init"                           => Some(("fs-init",    "fs-init")),
-        "browser" | "apps/fs-browser" | "browser/fs-browser" => Some(("fs-browser", "fs-browser")),
-        _                                                     => None,
-    };
-
-    let (repo_dir, binary_name): (String, String) = if let Some((dir, bin)) = known {
+    let (repo_dir, binary_name): (String, String) = if let Some((dir, bin)) = lookup_local_build_binary(id) {
         (dir.to_string(), bin.to_string())
     } else {
         // Strip catalog namespace prefix (e.g. "apps/", "containers/"), use the last segment.

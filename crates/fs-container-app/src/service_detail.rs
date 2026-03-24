@@ -9,6 +9,7 @@ use fs_i18n;
 use crate::instance_config::InstanceConfigEditor;
 use crate::log_viewer::LogViewer;
 use crate::service_list::ServiceAction;
+use crate::status::UnitActiveStateDisplay;
 
 // ── ServiceDetail ──────────────────────────────────────────────────────────────
 
@@ -117,14 +118,10 @@ fn ServiceStatusBadge(service_name: String) -> Element {
         });
     }
 
-    let (label, color, bg) = match *state.read() {
-        UnitActiveState::Active       => (fs_i18n::t("status.running"),  "var(--fs-success)",      "rgba(34,197,94,0.1)"),
-        UnitActiveState::Inactive     => (fs_i18n::t("status.stopped"),  "var(--fs-text-muted)",   "var(--fs-bg-elevated)"),
-        UnitActiveState::Activating   => (fs_i18n::t("status.starting"), "var(--fs-info)",         "rgba(99,179,237,0.1)"),
-        UnitActiveState::Deactivating => (fs_i18n::t("status.stopping"), "var(--fs-warning)",      "rgba(251,191,36,0.1)"),
-        UnitActiveState::Failed       => (fs_i18n::t("status.failed"),   "var(--fs-error)",        "rgba(239,68,68,0.1)"),
-        UnitActiveState::Unknown      => (fs_i18n::t("status.unknown"),  "var(--fs-text-muted)",   "var(--fs-bg-elevated)"),
-    };
+    let active = state.read().clone();
+    let label  = active.status_label();
+    let color  = active.status_color();
+    let bg     = active.status_bg();
 
     rsx! {
         span {

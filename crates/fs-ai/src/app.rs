@@ -9,12 +9,25 @@
 use dioxus::prelude::*;
 use fs_manager_ai::{AiEngine, EngineStatus, LlmConfig, LlmEngine, LlmModel};
 
-fn make_engine(model: LlmModel) -> LlmEngine {
-    LlmEngine::new(
-        LlmConfig { model, ..LlmConfig::default() },
-        LlmEngine::default_binary(),
-        LlmEngine::default_data_dir(),
-    )
+// ── ModelConfig ───────────────────────────────────────────────────────────────
+
+/// Holds per-model configuration and acts as a factory for [`LlmEngine`].
+struct ModelConfig {
+    model: LlmModel,
+}
+
+impl ModelConfig {
+    fn for_model(model: LlmModel) -> Self {
+        Self { model }
+    }
+
+    fn engine(&self) -> LlmEngine {
+        LlmEngine::new(
+            LlmConfig { model: self.model.clone(), ..LlmConfig::default() },
+            LlmEngine::default_binary(),
+            LlmEngine::default_data_dir(),
+        )
+    }
 }
 
 // ── AiManagerApp ─────────────────────────────────────────────────────────────
@@ -22,41 +35,45 @@ fn make_engine(model: LlmModel) -> LlmEngine {
 #[component]
 pub fn AiManagerApp() -> Element {
     let mut selected_model = use_signal(|| LlmModel::Qwen3_4B);
-    let mut status         = use_signal(|| make_engine(LlmModel::Qwen3_4B).status());
+    let mut status         = use_signal(|| ModelConfig::for_model(LlmModel::Qwen3_4B).engine().status());
     let mut feedback       = use_signal(String::new);
 
     let mut do_refresh = move || {
-        status.set(make_engine(selected_model.read().clone()).status());
+        status.set(ModelConfig::for_model(selected_model.read().clone()).engine().status());
     };
 
     rsx! {
         div {
-            style: "display: flex; height: 100%; width: 100%; overflow: hidden; background: #0c1222;",
+            style: "display: flex; height: 100%; width: 100%; overflow: hidden; background: var(--fs-color-bg-base);",
 
             // ── Sidebar ───────────────────────────────────────────────────────
             div {
-                style: "width: 220px; flex-shrink: 0; background: #1e293b; \
-                        border-right: 1px solid #334155; \
+                style: "width: 220px; flex-shrink: 0; background: var(--fs-color-bg-surface); \
+                        border-right: 1px solid var(--fs-color-border); \
                         display: flex; flex-direction: column; padding: 16px 0;",
 
                 div {
                     style: "padding: 0 16px 12px; font-size: 11px; font-weight: 600; \
-                            letter-spacing: 0.08em; text-transform: uppercase; color: #94a3b8;",
+                            letter-spacing: 0.08em; text-transform: uppercase; color: var(--fs-color-text-muted);",
                     "Engines"
                 }
 
                 div {
                     style: "display: flex; align-items: center; gap: 10px; \
-                            padding: 10px 16px; background: #263349; \
-                            border-left: 3px solid #00d9ff;",
+                            padding: 10px 16px; background: var(--fs-color-bg-overlay); \
+                            border-left: 3px solid var(--fs-color-primary);",
                     div {
                         style: format!(
                             "width: 8px; height: 8px; border-radius: 50%; \
                              background: {};",
-                            if status.read().is_running() { "#22c55e" } else { "#64748b" }
+                            if status.read().is_running() {
+                                "var(--fs-color-success)"
+                            } else {
+                                "var(--fs-color-text-muted)"
+                            }
                         ),
                     }
-                    span { style: "color: #e2e8f0; font-size: 14px;", "Mistral.rs" }
+                    span { style: "color: var(--fs-color-text-primary); font-size: 14px;", "Mistral.rs" }
                 }
             }
 
@@ -65,7 +82,7 @@ pub fn AiManagerApp() -> Element {
                 style: "flex: 1; overflow-y: auto; padding: 32px;",
 
                 h2 {
-                    style: "margin: 0 0 4px; font-size: 20px; font-weight: 600; color: #00d9ff;",
+                    style: "margin: 0 0 4px; font-size: 20px; font-weight: 600; color: var(--fs-color-primary);",
                     "Mistral.rs"
                 }
                 p {

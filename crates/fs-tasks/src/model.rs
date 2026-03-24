@@ -80,6 +80,37 @@ pub struct TaskPipeline {
 }
 
 impl TaskPipeline {
+    pub fn new_default(id: u32) -> Self {
+        Self {
+            id: format!("task-{id}"),
+            name: "New Task".into(),
+            source: DataSource {
+                service: "Forgejo".into(),
+                offer: "repos.list".into(),
+                fields: vec![
+                    DataField { name: "name".into(),        label: "Repo Name".into(),   example: "my-repo".into() },
+                    DataField { name: "description".into(), label: "Description".into(), example: "A cool project".into() },
+                ],
+            },
+            target: DataTarget {
+                service: "Outline".into(),
+                accept: "document.create".into(),
+                fields: vec![
+                    DataField { name: "title".into(), label: "Title".into(), example: "My Doc".into() },
+                    DataField { name: "body".into(),  label: "Body".into(),  example: "Content…".into() },
+                ],
+            },
+            mappings: vec![
+                FieldMapping { source_field: Some("name".into()),        target_field: "title".into(),      transform: FieldTransform::Template("Repo: {{ value }}".into()) },
+                FieldMapping { source_field: Some("description".into()), target_field: "body".into(),       transform: FieldTransform::Direct },
+                FieldMapping { source_field: None,                       target_field: "collection".into(), transform: FieldTransform::Fixed("Documentation".into()) },
+            ],
+            trigger: DataTrigger::Manual,
+            enabled: true,
+            last_run: None,
+        }
+    }
+
     pub fn status_label(&self) -> &'static str {
         if self.enabled { "● Active" } else { "○ Inactive" }
     }
@@ -109,19 +140,18 @@ impl TasksConfig {
         PathBuf::from(home).join(".config").join("fsn").join("tasks.toml")
     }
 
-    pub fn load() -> Vec<TaskPipeline> {
+    pub fn load() -> Self {
         let path = Self::path();
         let content = std::fs::read_to_string(&path).unwrap_or_default();
-        toml::from_str::<Self>(&content).unwrap_or_default().tasks
+        toml::from_str::<Self>(&content).unwrap_or_default()
     }
 
-    pub fn save(tasks: &[TaskPipeline]) -> Result<(), String> {
+    pub fn save(&self) -> Result<(), String> {
         let path = Self::path();
         if let Some(p) = path.parent() {
             std::fs::create_dir_all(p).map_err(|e| e.to_string())?;
         }
-        let cfg = Self { tasks: tasks.to_vec() };
-        let content = toml::to_string_pretty(&cfg).map_err(|e| e.to_string())?;
+        let content = toml::to_string_pretty(self).map_err(|e| e.to_string())?;
         std::fs::write(&path, content).map_err(|e| e.to_string())
     }
 }

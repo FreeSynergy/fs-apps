@@ -10,6 +10,8 @@ use fs_container::{SystemctlManager, UnitActiveState};
 use fs_error::FsError;
 use fs_i18n;
 
+use crate::status::UnitActiveStateDisplay;
+
 /// A single service entry displayed in the list.
 #[derive(Clone, Debug, PartialEq)]
 pub struct ServiceEntry {
@@ -19,29 +21,6 @@ pub struct ServiceEntry {
     pub description: String,
 }
 
-impl ServiceEntry {
-    pub fn status_label(&self) -> String {
-        match self.active {
-            UnitActiveState::Active       => fs_i18n::t("status.running").to_string(),
-            UnitActiveState::Inactive     => fs_i18n::t("status.stopped").to_string(),
-            UnitActiveState::Activating   => fs_i18n::t("status.starting").to_string(),
-            UnitActiveState::Deactivating => fs_i18n::t("status.stopping").to_string(),
-            UnitActiveState::Failed       => fs_i18n::t("status.failed").to_string(),
-            UnitActiveState::Unknown      => fs_i18n::t("status.unknown").to_string(),
-        }
-    }
-
-    pub fn status_color(&self) -> &str {
-        match self.active {
-            UnitActiveState::Active       => "var(--fs-success)",
-            UnitActiveState::Inactive     => "var(--fs-text-muted)",
-            UnitActiveState::Activating   => "var(--fs-info)",
-            UnitActiveState::Deactivating => "var(--fs-warning)",
-            UnitActiveState::Failed       => "var(--fs-error)",
-            UnitActiveState::Unknown      => "var(--fs-text-muted)",
-        }
-    }
-}
 
 /// Container lifecycle action.
 ///
@@ -294,8 +273,8 @@ fn ServiceRow(
             td { style: "padding: 12px 8px; font-weight: 500; font-size: 13px;", "{service.name}" }
             td { style: "padding: 12px 8px;",
                 span {
-                    style: "color: {service.status_color()}; font-size: 13px;",
-                    "{service.status_label()}"
+                    style: "color: {service.active.status_color()}; font-size: 13px;",
+                    "{service.active.status_label()}"
                 }
             }
             td { style: "padding: 12px 8px; font-size: 12px; color: var(--fs-text-muted);",

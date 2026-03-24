@@ -4,6 +4,7 @@ pub mod instance_config;
 pub mod log_viewer;
 pub mod service_detail;
 pub mod service_list;
+pub mod status;
 
 pub use app::Container;
 

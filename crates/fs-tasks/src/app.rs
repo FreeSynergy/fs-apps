@@ -1,10 +1,7 @@
 /// Tasks — automation pipeline manager.
 use dioxus::prelude::*;
 
-use crate::model::{
-    DataField, DataSource, DataTarget, DataTrigger, FieldMapping, FieldTransform,
-    TaskPipeline, TasksConfig,
-};
+use crate::model::{DataSource, DataTarget, DataTrigger, TaskPipeline, TasksConfig};
 use crate::pipeline_editor::PipelineEditor;
 use crate::templates::BUILTIN_TEMPLATES;
 
@@ -16,7 +13,7 @@ pub fn TasksApp() -> Element {
     let mut show_templates   = use_signal(|| false);
     let mut next_id          = use_signal(|| 100u32);
 
-    let task_list          = tasks.read().clone();
+    let task_list          = tasks.read().tasks.clone();
     let sel_idx            = *selected_idx.read();
     let selected           = sel_idx.and_then(|i| task_list.get(i).cloned());
     let is_editing         = *editing.read();
@@ -46,13 +43,13 @@ pub fn TasksApp() -> Element {
                             onclick: move |_| {
                                 let id = *next_id.read();
                                 next_id.set(id + 1);
-                                let task = make_default_task(id);
-                                let new_idx = tasks.read().len();
-                                tasks.write().push(task);
+                                let task = TaskPipeline::new_default(id);
+                                let new_idx = tasks.read().tasks.len();
+                                tasks.write().tasks.push(task);
                                 selected_idx.set(Some(new_idx));
                                 editing.set(true);
                                 show_templates.set(false);
-                                let _ = TasksConfig::save(&*tasks.read());
+                                let _ = tasks.read().save();
                             },
                             style: "flex: 1; background: var(--fs-color-primary); color: #fff; \
                                     border: none; border-radius: var(--fs-radius-sm); \
@@ -122,12 +119,12 @@ pub fn TasksApp() -> Element {
                                     enabled: true,
                                     last_run: None,
                                 };
-                                let new_idx = tasks.read().len();
-                                tasks.write().push(task);
+                                let new_idx = tasks.read().tasks.len();
+                                tasks.write().tasks.push(task);
                                 selected_idx.set(Some(new_idx));
                                 editing.set(true);
                                 show_templates.set(false);
-                                let _ = TasksConfig::save(&*tasks.read());
+                                let _ = tasks.read().save();
                             }
                         }
                     }
@@ -137,8 +134,8 @@ pub fn TasksApp() -> Element {
                             pipeline: task.clone(),
                             on_save: move |updated: TaskPipeline| {
                                 if let Some(i) = sel_idx {
-                                    tasks.write()[i] = updated;
-                                    let _ = TasksConfig::save(&*tasks.read());
+                                    tasks.write().tasks[i] = updated;
+                                    let _ = tasks.read().save();
                                 }
                                 editing.set(false);
                             },
@@ -150,8 +147,8 @@ pub fn TasksApp() -> Element {
                             on_edit: move |_| editing.set(true),
                             on_delete: move |_| {
                                 if let Some(i) = sel_idx {
-                                    tasks.write().remove(i);
-                                    let _ = TasksConfig::save(&*tasks.read());
+                                    tasks.write().tasks.remove(i);
+                                    let _ = tasks.read().save();
                                     selected_idx.set(None);
                                 }
                             },
@@ -169,37 +166,6 @@ pub fn TasksApp() -> Element {
                 }
             }
         }
-    }
-}
-
-fn make_default_task(id: u32) -> TaskPipeline {
-    TaskPipeline {
-        id: format!("task-{id}"),
-        name: "New Task".into(),
-        source: DataSource {
-            service: "Forgejo".into(),
-            offer: "repos.list".into(),
-            fields: vec![
-                DataField { name: "name".into(),        label: "Repo Name".into(),    example: "my-repo".into() },
-                DataField { name: "description".into(), label: "Description".into(),  example: "A cool project".into() },
-            ],
-        },
-        target: DataTarget {
-            service: "Outline".into(),
-            accept: "document.create".into(),
-            fields: vec![
-                DataField { name: "title".into(), label: "Title".into(), example: "My Doc".into() },
-                DataField { name: "body".into(),  label: "Body".into(),  example: "Content…".into() },
-            ],
-        },
-        mappings: vec![
-            FieldMapping { source_field: Some("name".into()),        target_field: "title".into(),      transform: FieldTransform::Template("Repo: {{ value }}".into()) },
-            FieldMapping { source_field: Some("description".into()), target_field: "body".into(),       transform: FieldTransform::Direct },
-            FieldMapping { source_field: None,                       target_field: "collection".into(), transform: FieldTransform::Fixed("Documentation".into()) },
-        ],
-        trigger: DataTrigger::Manual,
-        enabled: true,
-        last_run: None,
     }
 }
 

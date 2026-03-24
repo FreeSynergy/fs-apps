@@ -4,7 +4,7 @@ use dioxus::prelude::*;
 use fs_i18n;
 
 use crate::model::Lens;
-use crate::query::refresh_lens;
+use crate::query::LensQueryEngine;
 
 // ── Context: Lenses can request opening URLs in the browser ───────────────────
 
@@ -140,7 +140,7 @@ pub fn LensesApp() -> Element {
                                     }
                                     let lens_for_task = lens_clone.clone();
                                     spawn(async move {
-                                        let items = refresh_lens(&lens_for_task).await;
+                                        let items = LensQueryEngine.refresh_lens(&lens_for_task).await;
                                         if let Some(l) = lenses.write().iter_mut().find(|l| l.id == id) {
                                             l.items           = items;
                                             l.loading         = false;

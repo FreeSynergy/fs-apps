@@ -9,7 +9,7 @@ use dioxus::prelude::*;
 use fs_components::FS_SIDEBAR_CSS;
 use fs_i18n;
 
-use crate::bookmarks::{add_bookmark, record_visit, remove_bookmark};
+use crate::bookmarks::BookmarkManager;
 use crate::model::{Bookmark, BrowserTab, DownloadEntry, HistoryEntry};
 use crate::search_engine::BrowserConfig;
 
@@ -146,7 +146,7 @@ pub fn BrowserApp() -> Element {
                     onclick: move |_| {
                         let url = current_url.clone();
                         if !url.is_empty() {
-                            if let Some(bm) = add_bookmark(&url, &url) {
+                            if let Some(bm) = BookmarkManager::add(&url, &url) {
                                 bookmarks.write().push(bm);
                                 status_msg.set(Some(fs_i18n::t("browser.bookmarks.added").to_string()));
                             }
@@ -288,7 +288,7 @@ pub fn BrowserApp() -> Element {
                                         panel.set(BrowserPanel::Browse);
                                     },
                                     on_remove: move |id: i64| {
-                                        remove_bookmark(&mut bookmarks.write(), id);
+                                        BookmarkManager::remove(&mut bookmarks.write(), id);
                                     },
                                 }
                             },
@@ -452,7 +452,7 @@ fn navigate_to(
     // navigate_to is called with already-normalized URLs; keep as-is.
     let url = url.to_string();
     address.set(url.clone());
-    history.write().push(record_visit(&url, &url));
+    history.write().push(BookmarkManager::record_visit(&url, &url));
 
     if let Some(tab) = tabs.write().iter_mut().find(|t| t.id == tab_id) {
         tab.navigate(url);

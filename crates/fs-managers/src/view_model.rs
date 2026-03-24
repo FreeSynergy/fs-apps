@@ -8,7 +8,8 @@
 // layer stays clean (Manageable trait without UI concerns).
 
 use fs_pkg::manageable::{ConfigField, ConfigFieldKind, ConfigValue, InstanceRef};
-use fs_pkg::manifest::PackageType;
+
+use crate::package_type_display::PackageTypeDisplay;
 
 // ── View structs ──────────────────────────────────────────────────────────────
 
@@ -150,7 +151,9 @@ impl PackageViewModel {
         let config      = pkg.config_fields();
         let build       = pkg.build_fields();
 
-        let (type_label, type_css) = Self::package_type_display(pkg.package_type());
+        let pkg_type   = pkg.package_type();
+        let type_label = pkg_type.display_label().to_string();
+        let type_css   = pkg_type.type_css().to_string();
         let instances_view: Vec<InstanceView> = instances.iter().map(InstanceView::from_instance).collect();
         let has_instances = !instances_view.is_empty();
 
@@ -186,20 +189,5 @@ impl PackageViewModel {
             can_stop:    pkg.can_stop(),
             can_persist: pkg.can_persist(),
         }
-    }
-
-    fn package_type_display(t: PackageType) -> (String, String) {
-        let (label, css) = match t {
-            PackageType::App       => ("App",       "fs-type--app"),
-            PackageType::Container => ("Container", "fs-type--container"),
-            PackageType::Bundle    => ("Bundle",    "fs-type--bundle"),
-            PackageType::Language  => ("Language",  "fs-type--language"),
-            PackageType::Theme     => ("Theme",     "fs-type--theme"),
-            PackageType::Widget    => ("Widget",    "fs-type--widget"),
-            PackageType::Bot       => ("Bot",       "fs-type--bot"),
-            PackageType::Bridge    => ("Bridge",    "fs-type--bridge"),
-            PackageType::Task      => ("Task",      "fs-type--task"),
-        };
-        (label.into(), css.into())
     }
 }
