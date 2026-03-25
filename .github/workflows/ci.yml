@@ -19,7 +19,7 @@ jobs:
 
       - name: Checkout external dependencies
         run: |
-          git clone --depth=1 "https://x-access-token:${{ secrets.FS_LIBS_TOKEN }}@github.com/FreeSynergy/fs-libs.git" "${{ github.workspace }}/../fs-libs"
+          git clone --depth=1 https://github.com/FreeSynergy/fs-libs.git "${{ github.workspace }}/../fs-libs"
           git clone --depth=1 https://github.com/FreeSynergy/fs-desktop.git "${{ github.workspace }}/../fs-desktop"
           git clone --depth=1 https://github.com/FreeSynergy/fs-managers.git "${{ github.workspace }}/../fs-managers"
 
@@ -64,7 +64,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Checkout external dependencies
         run: |
-          git clone --depth=1 "https://x-access-token:${{ secrets.FS_LIBS_TOKEN }}@github.com/FreeSynergy/fs-libs.git" "${{ github.workspace }}/../fs-libs"
+          git clone --depth=1 https://github.com/FreeSynergy/fs-libs.git "${{ github.workspace }}/../fs-libs"
           git clone --depth=1 https://github.com/FreeSynergy/fs-desktop.git "${{ github.workspace }}/../fs-desktop"
           git clone --depth=1 https://github.com/FreeSynergy/fs-managers.git "${{ github.workspace }}/../fs-managers"
       - uses: dtolnay/rust-toolchain@stable
