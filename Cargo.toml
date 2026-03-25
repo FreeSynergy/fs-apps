@@ -3,7 +3,6 @@ members = [
     # UI Apps
     "crates/fs-store-app",
     "crates/fs-builder",
-    "crates/fs-browser",
     "crates/fs-lenses",
     "crates/fs-theme-app",
     # Tools
@@ -29,7 +28,6 @@ repository  = "https://github.com/FreeSynergy/fs-apps"
 # Internal app crates
 fs-store-app     = { path = "crates/fs-store-app" }
 fs-builder       = { path = "crates/fs-builder" }
-fs-browser       = { path = "crates/fs-browser" }
 fs-lenses        = { path = "crates/fs-lenses" }
 fs-theme-app     = { path = "crates/fs-theme-app" }
 fs-tasks         = { path = "crates/fs-tasks" }
