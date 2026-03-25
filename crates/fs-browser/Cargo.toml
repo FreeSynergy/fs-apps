@@ -19,12 +19,9 @@ desktop  = ["dioxus/desktop", "fs-components/desktop"]
 web      = ["dioxus/web",     "fs-components/web"]
 
 [dependencies]
-fs-db-desktop = { workspace = true }
 fs-components = { workspace = true }
 fs-i18n       = { workspace = true }
 dioxus        = { workspace = true }
 serde         = { workspace = true }
-serde_json    = { workspace = true }
 toml          = { workspace = true }
-tokio         = { workspace = true }
 chrono        = { workspace = true }

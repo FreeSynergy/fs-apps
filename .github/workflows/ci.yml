@@ -17,6 +17,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Checkout fs-libs
+        uses: actions/checkout@v4
+        with:
+          repository: FreeSynergy/fs-libs
+          path: ../fs-libs
+          token: ${{ secrets.FS_LIBS_TOKEN }}
+
+      - name: Checkout fs-desktop
+        uses: actions/checkout@v4
+        with:
+          repository: FreeSynergy/fs-desktop
+          path: ../fs-desktop
+
+      - name: Checkout fs-managers
+        uses: actions/checkout@v4
+        with:
+          repository: FreeSynergy/fs-managers
+          path: ../fs-managers
+
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
@@ -68,6 +87,9 @@ jobs:
   audit:
     name: Security audit
     runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: rustsec/audit-check@v2

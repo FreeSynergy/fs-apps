@@ -10,12 +10,10 @@ path = "src/lib.rs"
 
 [features]
 default = ["desktop"]
-desktop = ["dioxus/desktop", "fs-components/desktop"]
-web     = ["dioxus/web",     "fs-components/web"]
+desktop = ["dioxus/desktop"]
+web     = ["dioxus/web"]
 
 [dependencies]
 fs-manager-ai = { workspace = true }
-fs-components = { workspace = true }
 fs-i18n       = { workspace = true }
-dioxus         = { workspace = true }
-serde_json     = { workspace = true }
+dioxus        = { workspace = true }

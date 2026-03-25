@@ -15,11 +15,10 @@ path = "src/main.rs"
 
 [features]
 default = ["desktop"]
-desktop = ["dioxus/desktop", "fs-components/desktop"]
-web     = ["dioxus/web",     "fs-components/web"]
+desktop = ["dioxus/desktop"]
+web     = ["dioxus/web"]
 
 [dependencies]
-fs-components          = { workspace = true }
 fs-i18n                = { workspace = true }
 fs-pkg                 = { workspace = true }
 fs-manager-language    = { workspace = true }
