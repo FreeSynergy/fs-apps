@@ -1964,7 +1964,6 @@ dependencies = [
  "anyhow",
  "reqwest 0.13.2",
  "serde",
- "serde_json",
  "tokio",
  "toml 1.0.7+spec-1.1.0",
  "tracing",

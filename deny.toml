@@ -1,6 +1,5 @@
 [graph]
 targets = []
-exclude-dev = false
 
 [advisories]
 version = 2
