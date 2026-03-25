@@ -17,24 +17,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Checkout fs-libs
-        uses: actions/checkout@v4
-        with:
-          repository: FreeSynergy/fs-libs
-          path: ../fs-libs
-          token: ${{ secrets.FS_LIBS_TOKEN }}
-
-      - name: Checkout fs-desktop
-        uses: actions/checkout@v4
-        with:
-          repository: FreeSynergy/fs-desktop
-          path: ../fs-desktop
-
-      - name: Checkout fs-managers
-        uses: actions/checkout@v4
-        with:
-          repository: FreeSynergy/fs-managers
-          path: ../fs-managers
+      - name: Checkout external dependencies
+        run: |
+          git clone --depth=1 "https://x-access-token:${{ secrets.FS_LIBS_TOKEN }}@github.com/FreeSynergy/fs-libs.git" "${{ github.workspace }}/../fs-libs"
+          git clone --depth=1 https://github.com/FreeSynergy/fs-desktop.git "${{ github.workspace }}/../fs-desktop"
+          git clone --depth=1 https://github.com/FreeSynergy/fs-managers.git "${{ github.workspace }}/../fs-managers"
 
       - name: Install Linux dependencies
         run: |
@@ -75,6 +62,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Checkout external dependencies
+        run: |
+          git clone --depth=1 "https://x-access-token:${{ secrets.FS_LIBS_TOKEN }}@github.com/FreeSynergy/fs-libs.git" "${{ github.workspace }}/../fs-libs"
+          git clone --depth=1 https://github.com/FreeSynergy/fs-desktop.git "${{ github.workspace }}/../fs-desktop"
+          git clone --depth=1 https://github.com/FreeSynergy/fs-managers.git "${{ github.workspace }}/../fs-managers"
       - uses: EmbarkStudios/cargo-deny-action@v2
 
   machete:
