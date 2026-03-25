@@ -5,11 +5,11 @@
 /// universal FsTabView slide+blur animation.
 use dioxus::prelude::*;
 use fs_components::{FsTabDef, FsTabView, Sidebar, SidebarItem, FS_SIDEBAR_CSS, FS_TAB_VIEW_CSS};
-use fs_store::StoreClient;
+use fs_store::StoreReader;
 
 use crate::browser::PackageBrowser;
 use crate::installed_list::InstalledList;
-use crate::node_package::{NodePackage, PackageKind};
+use crate::node_package::PackageKind;
 use crate::package_card::PackageEntry;
 use crate::package_detail::PackageDetail;
 use crate::store_settings::StoreSettings;
@@ -238,7 +238,7 @@ impl StoreSection {
 /// Root Store component.
 ///
 /// Layout:
-/// ```
+/// ```text
 /// ┌─────────────────────────────────────────────────────┐
 /// │  [Server]  [Apps]  [Desktop]     ← FsTabView bar   │
 /// ├──────────────────────────────────────────────────────┤
@@ -260,19 +260,20 @@ pub fn StoreApp() -> Element {
 
     let catalog_versions: Signal<Vec<(String, String)>> = use_signal(Vec::new);
     {
-        let catalog_versions = catalog_versions.clone();
         use_future(move || {
-            let mut catalog_versions = catalog_versions.clone();
+            let mut catalog_versions = catalog_versions;
             async move {
-                if let Ok(catalog) = StoreClient::node_store()
-                    .fetch_catalog::<NodePackage>("node", false)
-                    .await
-                {
+                let reader = StoreReader::official();
+                if let Ok(ns_map) = reader.load_all().await {
                     catalog_versions.set(
-                        catalog
-                            .packages
-                            .into_iter()
-                            .map(|p| (p.id, p.version))
+                        ns_map
+                            .all()
+                            .map(|p| {
+                                (
+                                    p.id().to_string(),
+                                    p.latest_version().unwrap_or("0.0.0").to_string(),
+                                )
+                            })
                             .collect(),
                     );
                 }

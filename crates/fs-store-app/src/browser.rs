@@ -1,8 +1,10 @@
 /// Package browser — fetches the live catalog and renders a filtered package grid.
+use std::collections::HashMap;
+
 use dioxus::prelude::*;
 use fs_components::{LoadingOverlay, SpinnerSize};
 use fs_db_desktop::package_registry::PackageRegistry;
-use fs_store::{Catalog, LocaleEntry, StoreClient};
+use fs_store::StoreReader;
 
 use crate::install_wizard::do_install;
 use crate::node_package::{NodePackage, PackageKind};
@@ -12,6 +14,7 @@ use crate::state::{notify_install_changed, INSTALL_COUNTER};
 /// Language codes that are always considered installed without needing a Store install.
 /// English is the only truly built-in language — it is the fallback for all i18n lookups
 /// and requires no installation. All other languages must be installed from the Store.
+#[allow(dead_code)]
 const BUILTIN_LANG_CODES: &[&str] = &["en"];
 
 /// Install-state filter for the package browser.
@@ -32,7 +35,7 @@ pub enum InstallFilter {
 ///
 /// Returns `None` for emoji glyphs, single characters, or empty strings so the
 /// caller can fall back to the `MissingIcon` placeholder instead of a broken `<img>`.
-pub fn resolve_icon(icon: &str) -> Option<String> {
+pub fn resolve_icon_path(icon: &str) -> Option<String> {
     if icon.is_empty() {
         return None;
     }
@@ -71,7 +74,7 @@ pub fn PackageBrowser(
 
     // Refresh installed flags whenever a package is installed or removed.
     {
-        let mut packages = packages.clone();
+        let mut packages = packages;
         use_effect(move || {
             let _ = INSTALL_COUNTER.read(); // subscribe to changes
             let installed_ids: std::collections::HashSet<String> =
@@ -83,39 +86,28 @@ pub fn PackageBrowser(
     }
 
     {
-        let packages = packages.clone();
         use_future(move || {
-            let mut packages = packages.clone();
+            let mut packages = packages;
             async move {
-                let mut client = StoreClient::node_store();
-                let mut entries = Vec::new();
-
-                // Apps catalog: standalone FreeSynergy binaries
-                if let Ok(apps) = client.fetch_catalog::<NodePackage>("apps", false).await {
-                    entries.extend(catalog_to_entries(apps));
-                }
-
-                // Desktop catalog: managers
-                if let Ok(desktop) = client.fetch_catalog::<NodePackage>("desktop", false).await {
-                    entries.extend(catalog_to_entries(desktop));
-                }
-
-                match client.fetch_catalog::<NodePackage>("node", false).await {
-                    Ok(catalog) => {
-                        entries.extend(catalog_to_entries(catalog));
-                        // Shared catalog: language packs, themes, widgets, etc.
-                        if let Ok(shared) =
-                            client.fetch_catalog::<NodePackage>("shared", false).await
-                        {
-                            entries.extend(catalog_to_entries(shared));
-                        }
+                let reader = StoreReader::official();
+                match reader.load_all().await {
+                    Ok(ns_map) => {
+                        let inst_map = installed_map();
+                        let entries: Vec<PackageEntry> = ns_map
+                            .all()
+                            .map(|pkg| {
+                                let node_pkg = NodePackage::from_package(pkg);
+                                PackageEntry::from_node_package(node_pkg, &inst_map)
+                            })
+                            .collect();
+                        packages.set(entries);
                         error.set(None);
                     }
                     Err(e) => {
                         error.set(Some(format!("Failed to load catalog: {e}")));
+                        packages.set(Vec::new());
                     }
                 }
-                packages.set(entries);
                 loading.set(false);
             }
         });
@@ -248,16 +240,16 @@ pub fn PackageBrowser(
 }
 
 impl PackageEntry {
-    /// Build a `PackageEntry` from a `NodePackage` catalog item.
+    /// Build a `PackageEntry` from a `NodePackage`.
     ///
     /// `installed_map` maps package IDs to their `installed_by` bundle ID (if any).
-    fn from_node_package(
+    pub(crate) fn from_node_package(
         pkg: NodePackage,
-        installed_map: &std::collections::HashMap<String, Option<String>>,
+        installed_map: &HashMap<String, Option<String>>,
     ) -> Self {
         let installed = installed_map.contains_key(&pkg.id);
         let installed_by = installed_map.get(&pkg.id).and_then(|v| v.clone());
-        let icon = pkg.icon.and_then(|i| resolve_icon(&i));
+        let icon = pkg.icon.and_then(|i| resolve_icon_path(&i));
         PackageEntry {
             id: pkg.id,
             name: pkg.name,
@@ -276,63 +268,12 @@ impl PackageEntry {
             installed_by,
         }
     }
-
-    /// Build a `PackageEntry` from a catalog `LocaleEntry`.
-    ///
-    /// Locale entries are surfaced as `PackageKind::Language` packages.
-    /// `installed_map` maps locale IDs to their `installed_by` bundle ID (if any).
-    /// `builtin_codes` lists locale IDs that are always considered installed.
-    fn from_locale_entry(
-        locale: LocaleEntry,
-        installed_map: &std::collections::HashMap<String, Option<String>>,
-        builtin_codes: &[&str],
-    ) -> Self {
-        let installed =
-            installed_map.contains_key(&locale.id) || builtin_codes.contains(&locale.id.as_str());
-        let installed_by = installed_map.get(&locale.id).and_then(|v| v.clone());
-        PackageEntry {
-            id: locale.id.clone(),
-            name: locale.name.clone(),
-            description: format!("{} language pack", locale.name),
-            version: locale.version.unwrap_or_default(),
-            category: "i18n.language".to_string(),
-            kind: PackageKind::Language,
-            capabilities: vec![],
-            tags: vec!["language".to_string()],
-            icon: None,
-            store_path: locale.url,
-            installed,
-            update_available: false,
-            license: "MIT".to_string(),
-            author: "Kal El".to_string(),
-            installed_by,
-        }
-    }
 }
 
-/// Convert a full catalog into a flat list of `PackageEntry` values.
-///
-/// Builds an installed-package map once, then delegates per-item construction
-/// to `PackageEntry::from_node_package` and `PackageEntry::from_locale_entry`.
-fn catalog_to_entries(catalog: Catalog<NodePackage>) -> Vec<PackageEntry> {
-    let installed_map: std::collections::HashMap<String, Option<String>> = PackageRegistry::load()
+/// Build the installed-package map once per fetch cycle.
+fn installed_map() -> HashMap<String, Option<String>> {
+    PackageRegistry::load()
         .into_iter()
         .map(|p| (p.id, p.installed_by))
-        .collect();
-
-    let mut entries: Vec<PackageEntry> = catalog
-        .packages
-        .into_iter()
-        .map(|p| PackageEntry::from_node_package(p, &installed_map))
-        .collect();
-
-    for locale in catalog.locales {
-        entries.push(PackageEntry::from_locale_entry(
-            locale,
-            &installed_map,
-            BUILTIN_LANG_CODES,
-        ));
-    }
-
-    entries
+        .collect()
 }

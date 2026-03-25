@@ -1,9 +1,8 @@
 /// Install logic and result popup — replaces the multi-step install wizard.
 use dioxus::prelude::*;
 use fs_db_desktop::package_registry::{InstalledPackage, PackageRegistry};
-use fs_store::StoreClient;
+use fs_store::StoreReader;
 
-use crate::browser::resolve_icon;
 use crate::node_package::{NodePackage, PackageKind};
 use crate::package_card::PackageEntry;
 
@@ -131,6 +130,7 @@ async fn do_install_inner(
 /// Fetches all catalogs, resolves each capability ID to a full PackageEntry,
 /// and installs the member if not already installed. Members installed this
 /// way are tagged with `installed_by = Some(bundle.id)`.
+#[allow(clippy::cognitive_complexity)]
 async fn install_bundle_members(
     bundle: &PackageEntry,
     _fs_dir: &std::path::Path,
@@ -169,36 +169,17 @@ async fn install_bundle_members(
     Ok(())
 }
 
-/// Fetch all catalogs (desktop, node, shared) and return a map of id → PackageEntry.
+/// Fetch all catalogs and return a map of id → PackageEntry.
 async fn fetch_catalog_map() -> std::collections::HashMap<String, PackageEntry> {
-    let mut client = StoreClient::node_store();
+    let reader = StoreReader::official();
     let mut map = std::collections::HashMap::new();
+    let no_installed = std::collections::HashMap::new();
 
-    for namespace in &["apps", "desktop", "node", "shared"] {
-        if let Ok(catalog) = client.fetch_catalog::<NodePackage>(namespace, false).await {
-            for pkg in catalog.packages {
-                let icon = pkg.icon.and_then(|i| resolve_icon(&i));
-                map.insert(
-                    pkg.id.clone(),
-                    PackageEntry {
-                        id: pkg.id,
-                        name: pkg.name,
-                        description: pkg.description,
-                        version: pkg.version,
-                        category: pkg.category,
-                        kind: pkg.kind,
-                        capabilities: pkg.capabilities,
-                        tags: pkg.tags,
-                        icon,
-                        store_path: pkg.path,
-                        installed: false,
-                        update_available: false,
-                        license: pkg.license,
-                        author: pkg.author,
-                        installed_by: None,
-                    },
-                );
-            }
+    if let Ok(ns_map) = reader.load_all().await {
+        for pkg in ns_map.all() {
+            let node_pkg = NodePackage::from_package(pkg);
+            let entry = PackageEntry::from_node_package(node_pkg, &no_installed);
+            map.insert(entry.id.clone(), entry);
         }
     }
     map
@@ -216,6 +197,7 @@ async fn fetch_catalog_map() -> std::collections::HashMap<String, PackageEntry> 
 ///
 /// `installed_by`: if Some, this is a bundle dependency — missing binaries are
 /// skipped with a warning instead of failing the whole installation.
+#[allow(clippy::cognitive_complexity)]
 async fn install_app_binary(
     package: &PackageEntry,
     installed_by: Option<&str>,
@@ -373,7 +355,7 @@ async fn install_language_pack(
 ) -> Result<Option<String>, String> {
     let base = store_path.unwrap_or_else(|| format!("packages/i18n/{}", package.id));
     let url = format!("{base}/ui.toml");
-    match StoreClient::node_store().fetch_raw(&url).await {
+    match StoreReader::official().fetch_raw(&url).await {
         Ok(content) => {
             let dest_dir = fs_dir.join("i18n").join(&package.id);
             std::fs::create_dir_all(&dest_dir).map_err(|e| e.to_string())?;
@@ -396,7 +378,7 @@ async fn install_theme_file(
 ) -> Result<Option<String>, String> {
     let base = store_path.unwrap_or_else(|| format!("packages/themes/{}", package.id));
     let url = format!("{base}/theme.css");
-    match StoreClient::node_store().fetch_raw(&url).await {
+    match StoreReader::official().fetch_raw(&url).await {
         Ok(content) => {
             let dest_dir = fs_dir.join("themes");
             std::fs::create_dir_all(&dest_dir).map_err(|e| e.to_string())?;
@@ -416,6 +398,7 @@ async fn install_theme_file(
 ///  2. Write compose + .env to ~/.local/share/fsn/services/<id>/
 ///  3. Try `fsn container install <compose_path>` (adds Quadlet + systemd unit)
 ///  4. systemctl --user daemon-reload
+#[allow(clippy::cognitive_complexity)]
 async fn install_container(
     package: &PackageEntry,
     store_path: Option<String>,
@@ -429,7 +412,7 @@ async fn install_container(
         let mut content = None;
         for name in &["compose.yml", "docker-compose.yml", "container.yml"] {
             let url = format!("{base}/{name}");
-            if let Ok(c) = StoreClient::node_store().fetch_raw(&url).await {
+            if let Ok(c) = StoreReader::official().fetch_raw(&url).await {
                 content = Some((c, *name));
                 break;
             }
@@ -520,7 +503,7 @@ pub async fn fetch_container_env_vars(package: &PackageEntry) -> Vec<String> {
 
     for name in &["compose.yml", "docker-compose.yml", "container.yml"] {
         let url = format!("{base}/{name}");
-        if let Ok(content) = StoreClient::node_store().fetch_raw(&url).await {
+        if let Ok(content) = StoreReader::official().fetch_raw(&url).await {
             return extract_env_var_names(&content);
         }
     }

@@ -118,7 +118,6 @@ pub fn PackageCard(
                                         border: none; background: var(--fs-color-error, #ef4444); \
                                         color: white; cursor: pointer; font-size: 13px;",
                                 onclick: {
-                                    let on_remove = on_remove.clone();
                                     move |_| {
                                         confirm_remove.set(false);
                                         if let Some(ref h) = on_remove {

@@ -40,7 +40,7 @@ fs-managers      = { path = "crates/fs-managers" }
 
 # fs-libs — shared libraries
 fs-types      = { path = "../fs-libs/fs-types" }
-fs-store      = { path = "../fs-libs/fs-store" }
+fs-store      = { path = "../fs-store/crates/fs-store" }
 fs-error      = { path = "../fs-libs/fs-error" }
 fs-i18n       = { path = "../fs-libs/fs-i18n", features = ["dioxus"] }
 fs-components = { path = "../fs-libs/fs-components" }

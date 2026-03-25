@@ -55,7 +55,7 @@ pub fn InstalledList(catalog_versions: Vec<(String, String)>) -> Element {
     let mut error: Signal<Option<String>> = use_signal(|| None);
     let mut confirm: Signal<Option<InstalledEntry>> = use_signal(|| None);
     // Registry packages (languages, themes, widgets, …)
-    let mut reg_pkgs: Signal<Vec<InstalledPackage>> = use_signal(|| PackageRegistry::load());
+    let mut reg_pkgs: Signal<Vec<InstalledPackage>> = use_signal(PackageRegistry::load);
     let mut reg_confirm: Signal<Option<InstalledPackage>> = use_signal(|| None);
 
     // Fetch services every 5 seconds
