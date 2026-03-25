@@ -9,10 +9,7 @@ use dioxus::prelude::*;
 ///
 /// Size is controlled by the parent container.
 #[component]
-pub fn MissingIcon(
-    #[props(default = 32)]
-    size: u32,
-) -> Element {
+pub fn MissingIcon(#[props(default = 32)] size: u32) -> Element {
     rsx! {
         svg {
             xmlns: "http://www.w3.org/2000/svg",

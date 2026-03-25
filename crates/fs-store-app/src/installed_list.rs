@@ -3,8 +3,8 @@
 /// Section 1: fs-*.service units via systemctl --user.
 /// Section 2: All packages registered in PackageRegistry (languages, themes, widgets, …).
 use dioxus::prelude::*;
-use fs_db_desktop::package_registry::{InstalledPackage, PackageKind, PackageRegistry};
 use fs_container::SystemctlManager;
+use fs_db_desktop::package_registry::{InstalledPackage, PackageKind, PackageRegistry};
 
 use crate::state::{notify_install_changed, INSTALL_COUNTER};
 
@@ -12,7 +12,7 @@ use crate::state::{notify_install_changed, INSTALL_COUNTER};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct InstalledEntry {
-    pub name:    String,
+    pub name: String,
     pub running: bool,
 }
 
@@ -20,7 +20,14 @@ pub struct InstalledEntry {
 
 async fn list_fs_units() -> Vec<String> {
     let Ok(out) = tokio::process::Command::new("systemctl")
-        .args(["--user", "list-units", "--type=service", "--no-legend", "--plain", "--all"])
+        .args([
+            "--user",
+            "list-units",
+            "--type=service",
+            "--no-legend",
+            "--plain",
+            "--all",
+        ])
         .output()
         .await
     else {
@@ -44,11 +51,11 @@ async fn list_fs_units() -> Vec<String> {
 /// Component that lists installed FSN services and Store packages with Remove buttons.
 #[component]
 pub fn InstalledList(catalog_versions: Vec<(String, String)>) -> Element {
-    let mut entries: Signal<Vec<InstalledEntry>>      = use_signal(Vec::new);
-    let mut error:   Signal<Option<String>>            = use_signal(|| None);
-    let mut confirm: Signal<Option<InstalledEntry>>    = use_signal(|| None);
+    let mut entries: Signal<Vec<InstalledEntry>> = use_signal(Vec::new);
+    let mut error: Signal<Option<String>> = use_signal(|| None);
+    let mut confirm: Signal<Option<InstalledEntry>> = use_signal(|| None);
     // Registry packages (languages, themes, widgets, …)
-    let mut reg_pkgs: Signal<Vec<InstalledPackage>>   = use_signal(|| PackageRegistry::load());
+    let mut reg_pkgs: Signal<Vec<InstalledPackage>> = use_signal(|| PackageRegistry::load());
     let mut reg_confirm: Signal<Option<InstalledPackage>> = use_signal(|| None);
 
     // Fetch services every 5 seconds
@@ -62,7 +69,10 @@ pub fn InstalledList(catalog_versions: Vec<(String, String)>) -> Element {
                 let mut rows = Vec::new();
                 for unit in &units {
                     let running = mgr.is_active(unit).await.unwrap_or(false);
-                    rows.push(InstalledEntry { name: unit.clone(), running });
+                    rows.push(InstalledEntry {
+                        name: unit.clone(),
+                        running,
+                    });
                 }
                 entries.set(rows);
                 error.set(None);
@@ -214,11 +224,12 @@ pub fn InstalledList(catalog_versions: Vec<(String, String)>) -> Element {
 // ── InstalledRow ──────────────────────────────────────────────────────────────
 
 #[component]
-fn InstalledRow(
-    entry: InstalledEntry,
-    on_remove: EventHandler<InstalledEntry>,
-) -> Element {
-    let status_color = if entry.running { "var(--fs-color-success, #22c55e)" } else { "var(--fs-color-text-muted)" };
+fn InstalledRow(entry: InstalledEntry, on_remove: EventHandler<InstalledEntry>) -> Element {
+    let status_color = if entry.running {
+        "var(--fs-color-success, #22c55e)"
+    } else {
+        "var(--fs-color-text-muted)"
+    };
     let status_label = if entry.running {
         fs_i18n::t("status.running")
     } else {
@@ -250,10 +261,7 @@ fn InstalledRow(
 // ── RegPackageRow ─────────────────────────────────────────────────────────────
 
 #[component]
-fn RegPackageRow(
-    pkg: InstalledPackage,
-    on_remove: EventHandler<InstalledPackage>,
-) -> Element {
+fn RegPackageRow(pkg: InstalledPackage, on_remove: EventHandler<InstalledPackage>) -> Element {
     let is_bundle_member = pkg.installed_by.is_some();
 
     rsx! {

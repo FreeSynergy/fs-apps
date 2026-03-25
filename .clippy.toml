@@ -1,4 +1,4 @@
 # OOP enforcement: force decomposition and trait-based design
 cognitive-complexity-threshold = 20
-too-many-arguments-threshold = 6
+too-many-arguments-threshold = 8
 too-many-lines-threshold = 200

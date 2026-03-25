@@ -24,23 +24,28 @@ pub struct RepoEntry {
     pub primary: bool,
 }
 
-fn bool_true() -> bool { true }
+fn bool_true() -> bool {
+    true
+}
 
 /// The one official FreeSynergy Store — always present, always primary.
 pub fn official_store() -> RepoEntry {
     RepoEntry {
-        name:       "FreeSynergy Store".to_string(),
-        url:        "https://raw.githubusercontent.com/FreeSynergy/Store/main".to_string(),
-        git_url:    Some("https://github.com/FreeSynergy/Store".to_string()),
+        name: "FreeSynergy Store".to_string(),
+        url: "https://raw.githubusercontent.com/FreeSynergy/Store/main".to_string(),
+        git_url: Some("https://github.com/FreeSynergy/Store".to_string()),
         local_path: None,
-        enabled:    true,
-        primary:    true,
+        enabled: true,
+        primary: true,
     }
 }
 
 fn config_path() -> std::path::PathBuf {
     let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
-    std::path::PathBuf::from(home).join(".config").join("fsn").join("settings.toml")
+    std::path::PathBuf::from(home)
+        .join(".config")
+        .join("fsn")
+        .join("settings.toml")
 }
 
 // ── Persistence ────────────────────────────────────────────────────────────────
@@ -81,8 +86,8 @@ pub fn save_repos(repos: &[RepoEntry]) -> Result<(), String> {
     }
 
     let existing = std::fs::read_to_string(&path).unwrap_or_default();
-    let mut doc: toml::Value = toml::from_str(&existing)
-        .unwrap_or(toml::Value::Table(Default::default()));
+    let mut doc: toml::Value =
+        toml::from_str(&existing).unwrap_or(toml::Value::Table(Default::default()));
 
     if let toml::Value::Table(ref mut root) = doc {
         let stores_val = toml::Value::try_from(repos.to_vec()).map_err(|e| e.to_string())?;
@@ -106,8 +111,8 @@ enum FormMode {
 
 #[component]
 pub fn StoreSettings() -> Element {
-    let mut repos    = use_signal(load_repos);
-    let mut mode     = use_signal(|| FormMode::Hidden);
+    let mut repos = use_signal(load_repos);
+    let mut mode = use_signal(|| FormMode::Hidden);
     let mut form_buf = use_signal(RepoEntry::default);
     let mut save_msg = use_signal(|| Option::<String>::None);
 

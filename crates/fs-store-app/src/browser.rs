@@ -1,7 +1,7 @@
 /// Package browser — fetches the live catalog and renders a filtered package grid.
 use dioxus::prelude::*;
-use fs_db_desktop::package_registry::PackageRegistry;
 use fs_components::{LoadingOverlay, SpinnerSize};
+use fs_db_desktop::package_registry::PackageRegistry;
 use fs_store::{Catalog, LocaleEntry, StoreClient};
 
 use crate::install_wizard::do_install;
@@ -61,13 +61,12 @@ pub fn resolve_icon(icon: &str) -> Option<String> {
 #[component]
 pub fn PackageBrowser(
     search: String,
-    #[props(default)]
-    kinds: Vec<PackageKind>,
+    #[props(default)] kinds: Vec<PackageKind>,
     on_select: EventHandler<PackageEntry>,
 ) -> Element {
     let packages: Signal<Vec<PackageEntry>> = use_signal(Vec::new);
-    let mut loading: Signal<bool>           = use_signal(|| true);
-    let mut error: Signal<Option<String>>   = use_signal(|| None);
+    let mut loading: Signal<bool> = use_signal(|| true);
+    let mut error: Signal<Option<String>> = use_signal(|| None);
     let mut install_filter = use_signal(|| InstallFilter::All);
 
     // Refresh installed flags whenever a package is installed or removed.
@@ -75,10 +74,8 @@ pub fn PackageBrowser(
         let mut packages = packages.clone();
         use_effect(move || {
             let _ = INSTALL_COUNTER.read(); // subscribe to changes
-            let installed_ids: std::collections::HashSet<String> = PackageRegistry::load()
-                .into_iter()
-                .map(|p| p.id)
-                .collect();
+            let installed_ids: std::collections::HashSet<String> =
+                PackageRegistry::load().into_iter().map(|p| p.id).collect();
             packages.write().iter_mut().for_each(|p| {
                 p.installed = installed_ids.contains(&p.id);
             });
@@ -107,7 +104,9 @@ pub fn PackageBrowser(
                     Ok(catalog) => {
                         entries.extend(catalog_to_entries(catalog));
                         // Shared catalog: language packs, themes, widgets, etc.
-                        if let Ok(shared) = client.fetch_catalog::<NodePackage>("shared", false).await {
+                        if let Ok(shared) =
+                            client.fetch_catalog::<NodePackage>("shared", false).await
+                        {
                             entries.extend(catalog_to_entries(shared));
                         }
                         error.set(None);
@@ -124,25 +123,25 @@ pub fn PackageBrowser(
 
     let query = search.to_lowercase();
     // Split query into individual words — all must match (AND logic)
-    let query_words: Vec<String> = query
-        .split_whitespace()
-        .map(|w| w.to_string())
-        .collect();
+    let query_words: Vec<String> = query.split_whitespace().map(|w| w.to_string()).collect();
 
     let cur_filter = install_filter.read().clone();
     let filtered: Vec<PackageEntry> = packages
         .read()
         .iter()
         .filter(|p| {
-            let matches_search = query_words.is_empty() || query_words.iter().all(|word| {
-                p.name.to_lowercase().contains(word.as_str())
-                    || p.description.to_lowercase().contains(word.as_str())
-                    || p.category.to_lowercase().contains(word.as_str())
-                    || p.tags.iter().any(|t| t.to_lowercase().contains(word.as_str()))
-            });
-            let matches_kind    = kinds.is_empty() || kinds.contains(&p.kind);
+            let matches_search = query_words.is_empty()
+                || query_words.iter().all(|word| {
+                    p.name.to_lowercase().contains(word.as_str())
+                        || p.description.to_lowercase().contains(word.as_str())
+                        || p.category.to_lowercase().contains(word.as_str())
+                        || p.tags
+                            .iter()
+                            .any(|t| t.to_lowercase().contains(word.as_str()))
+                });
+            let matches_kind = kinds.is_empty() || kinds.contains(&p.kind);
             let matches_install = match &cur_filter {
-                InstallFilter::All       => true,
+                InstallFilter::All => true,
                 InstallFilter::Installed => p.installed,
                 InstallFilter::Available => !p.installed,
                 InstallFilter::Updatable => p.update_available,
@@ -248,7 +247,6 @@ pub fn PackageBrowser(
     }
 }
 
-
 impl PackageEntry {
     /// Build a `PackageEntry` from a `NodePackage` catalog item.
     ///
@@ -257,24 +255,24 @@ impl PackageEntry {
         pkg: NodePackage,
         installed_map: &std::collections::HashMap<String, Option<String>>,
     ) -> Self {
-        let installed    = installed_map.contains_key(&pkg.id);
+        let installed = installed_map.contains_key(&pkg.id);
         let installed_by = installed_map.get(&pkg.id).and_then(|v| v.clone());
-        let icon         = pkg.icon.and_then(|i| resolve_icon(&i));
+        let icon = pkg.icon.and_then(|i| resolve_icon(&i));
         PackageEntry {
-            id:               pkg.id,
-            name:             pkg.name,
-            description:      pkg.description,
-            version:          pkg.version,
-            category:         pkg.category,
-            kind:             pkg.kind,
-            capabilities:     pkg.capabilities,
-            tags:             pkg.tags,
+            id: pkg.id,
+            name: pkg.name,
+            description: pkg.description,
+            version: pkg.version,
+            category: pkg.category,
+            kind: pkg.kind,
+            capabilities: pkg.capabilities,
+            tags: pkg.tags,
             icon,
-            store_path:       pkg.path,
+            store_path: pkg.path,
             installed,
             update_available: false,
-            license:          pkg.license,
-            author:           pkg.author,
+            license: pkg.license,
+            author: pkg.author,
             installed_by,
         }
     }
@@ -289,24 +287,24 @@ impl PackageEntry {
         installed_map: &std::collections::HashMap<String, Option<String>>,
         builtin_codes: &[&str],
     ) -> Self {
-        let installed    = installed_map.contains_key(&locale.id)
-            || builtin_codes.contains(&locale.id.as_str());
+        let installed =
+            installed_map.contains_key(&locale.id) || builtin_codes.contains(&locale.id.as_str());
         let installed_by = installed_map.get(&locale.id).and_then(|v| v.clone());
         PackageEntry {
-            id:               locale.id.clone(),
-            name:             locale.name.clone(),
-            description:      format!("{} language pack", locale.name),
-            version:          locale.version.unwrap_or_default(),
-            category:         "i18n.language".to_string(),
-            kind:             PackageKind::Language,
-            capabilities:     vec![],
-            tags:             vec!["language".to_string()],
-            icon:             None,
-            store_path:       locale.url,
+            id: locale.id.clone(),
+            name: locale.name.clone(),
+            description: format!("{} language pack", locale.name),
+            version: locale.version.unwrap_or_default(),
+            category: "i18n.language".to_string(),
+            kind: PackageKind::Language,
+            capabilities: vec![],
+            tags: vec!["language".to_string()],
+            icon: None,
+            store_path: locale.url,
             installed,
             update_available: false,
-            license:          "MIT".to_string(),
-            author:           "Kal El".to_string(),
+            license: "MIT".to_string(),
+            author: "Kal El".to_string(),
             installed_by,
         }
     }
@@ -317,11 +315,10 @@ impl PackageEntry {
 /// Builds an installed-package map once, then delegates per-item construction
 /// to `PackageEntry::from_node_package` and `PackageEntry::from_locale_entry`.
 fn catalog_to_entries(catalog: Catalog<NodePackage>) -> Vec<PackageEntry> {
-    let installed_map: std::collections::HashMap<String, Option<String>> =
-        PackageRegistry::load()
-            .into_iter()
-            .map(|p| (p.id, p.installed_by))
-            .collect();
+    let installed_map: std::collections::HashMap<String, Option<String>> = PackageRegistry::load()
+        .into_iter()
+        .map(|p| (p.id, p.installed_by))
+        .collect();
 
     let mut entries: Vec<PackageEntry> = catalog
         .packages

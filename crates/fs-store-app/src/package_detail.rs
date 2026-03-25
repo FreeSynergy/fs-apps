@@ -18,13 +18,12 @@ use crate::state::notify_install_changed;
 pub fn PackageDetail(
     package: PackageEntry,
     on_back: EventHandler<()>,
-    #[props(default)]
-    on_select_package: Option<EventHandler<String>>,
+    #[props(default)] on_select_package: Option<EventHandler<String>>,
 ) -> Element {
-    let mut installing:     Signal<bool>                  = use_signal(|| false);
+    let mut installing: Signal<bool> = use_signal(|| false);
     let mut install_result: Signal<Option<InstallResult>> = use_signal(|| None);
-    let mut installed       = use_signal(|| PackageRegistry::is_installed(&package.id));
-    let mut remove_confirm  = use_signal(|| false);
+    let mut installed = use_signal(|| PackageRegistry::is_installed(&package.id));
+    let mut remove_confirm = use_signal(|| false);
 
     rsx! {
         div {

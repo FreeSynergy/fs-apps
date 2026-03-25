@@ -68,14 +68,12 @@ use crate::missing_icon::MissingIcon;
 /// Package card component.
 #[component]
 pub fn PackageCard(
-    package:    PackageEntry,
+    package: PackageEntry,
     on_details: EventHandler<MouseEvent>,
-    #[props(default)]
-    on_install: Option<EventHandler<()>>,
-    #[props(default)]
-    on_remove:  Option<EventHandler<()>>,
+    #[props(default)] on_install: Option<EventHandler<()>>,
+    #[props(default)] on_remove: Option<EventHandler<()>>,
 ) -> Element {
-    let mut show_dropdown  = use_signal(|| false);
+    let mut show_dropdown = use_signal(|| false);
     let mut confirm_remove = use_signal(|| false);
 
     rsx! {

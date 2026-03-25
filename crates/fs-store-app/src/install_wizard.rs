@@ -20,9 +20,9 @@ pub enum InstallResult {
 
 /// Context passed to each install strategy.
 struct InstallCtx<'a> {
-    fs_dir:       &'a std::path::Path,
-    store_path:   Option<String>,
-    env_vars:     &'a str,
+    fs_dir: &'a std::path::Path,
+    store_path: Option<String>,
+    env_vars: &'a str,
     installed_by: Option<&'a str>,
 }
 
@@ -31,7 +31,7 @@ trait PackageInstallExt {
     async fn install_files(
         &self,
         package: &PackageEntry,
-        ctx:     InstallCtx<'_>,
+        ctx: InstallCtx<'_>,
     ) -> Result<Option<String>, String>;
 }
 
@@ -39,16 +39,23 @@ impl PackageInstallExt for PackageKind {
     async fn install_files(
         &self,
         package: &PackageEntry,
-        ctx:     InstallCtx<'_>,
+        ctx: InstallCtx<'_>,
     ) -> Result<Option<String>, String> {
         match self {
-            PackageKind::Bundle    => { install_bundle_members(package, ctx.fs_dir).await?; Ok(None) }
-            PackageKind::Container => install_container(package, ctx.store_path, ctx.fs_dir, ctx.env_vars).await,
-            PackageKind::Language  => install_language_pack(package, ctx.store_path, ctx.fs_dir).await,
-            PackageKind::Theme     => install_theme_file(package, ctx.store_path, ctx.fs_dir).await,
-            PackageKind::App       => install_app_binary(package, ctx.installed_by).await,
+            PackageKind::Bundle => {
+                install_bundle_members(package, ctx.fs_dir).await?;
+                Ok(None)
+            }
+            PackageKind::Container => {
+                install_container(package, ctx.store_path, ctx.fs_dir, ctx.env_vars).await
+            }
+            PackageKind::Language => {
+                install_language_pack(package, ctx.store_path, ctx.fs_dir).await
+            }
+            PackageKind::Theme => install_theme_file(package, ctx.store_path, ctx.fs_dir).await,
+            PackageKind::App => install_app_binary(package, ctx.installed_by).await,
             // Widget, Bot, Task, Bridge, Plugin — register without file download
-            _                      => Ok(None),
+            _ => Ok(None),
         }
     }
 }
@@ -67,9 +74,7 @@ async fn fetch_icon_content(icon: Option<String>) -> String {
                 .send()
                 .await
             {
-                Ok(resp) if resp.status().is_success() => {
-                    resp.text().await.unwrap_or(url)
-                }
+                Ok(resp) if resp.status().is_success() => resp.text().await.unwrap_or(url),
                 _ => url,
             }
         }
@@ -84,19 +89,21 @@ pub async fn do_install(package: PackageEntry, env_vars: String) -> Result<(), S
 
 /// Internal install: same as do_install but sets installed_by (for bundle members).
 async fn do_install_inner(
-    package:      PackageEntry,
-    env_vars:     String,
+    package: PackageEntry,
+    env_vars: String,
     installed_by: Option<String>,
 ) -> Result<(), String> {
-    let home      = std::env::var("HOME").unwrap_or_else(|_| ".".into());
-    let fs_dir    = std::path::PathBuf::from(&home).join(".local/share/fsn");
-    let store_path = package.store_path.as_deref()
+    let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
+    let fs_dir = std::path::PathBuf::from(&home).join(".local/share/fsn");
+    let store_path = package
+        .store_path
+        .as_deref()
         .map(|p| p.trim_end_matches('/').to_string());
 
     let ctx = InstallCtx {
-        fs_dir:       &fs_dir,
+        fs_dir: &fs_dir,
         store_path,
-        env_vars:     &env_vars,
+        env_vars: &env_vars,
         installed_by: installed_by.as_deref(),
     };
     // Fetch files and icon content concurrently.
@@ -107,11 +114,11 @@ async fn do_install_inner(
     let file_path = file_path?;
 
     PackageRegistry::install(InstalledPackage {
-        id:           package.id.clone(),
-        name:         package.name.clone(),
-        kind:         package.kind.clone(),
-        version:      package.version.clone(),
-        icon:         icon_content,
+        id: package.id.clone(),
+        name: package.name.clone(),
+        kind: package.kind.clone(),
+        version: package.version.clone(),
+        icon: icon_content,
         file_path,
         installed_by,
         pinned: false,
@@ -124,7 +131,10 @@ async fn do_install_inner(
 /// Fetches all catalogs, resolves each capability ID to a full PackageEntry,
 /// and installs the member if not already installed. Members installed this
 /// way are tagged with `installed_by = Some(bundle.id)`.
-async fn install_bundle_members(bundle: &PackageEntry, _fs_dir: &std::path::Path) -> Result<(), String> {
+async fn install_bundle_members(
+    bundle: &PackageEntry,
+    _fs_dir: &std::path::Path,
+) -> Result<(), String> {
     let pkg_map = fetch_catalog_map().await;
 
     for cap_id in &bundle.capabilities {
@@ -136,11 +146,23 @@ async fn install_bundle_members(bundle: &PackageEntry, _fs_dir: &std::path::Path
 
         match pkg_map.get(cap_id) {
             Some(member) => {
-                tracing::info!("installing bundle member '{}' (via bundle '{}')", cap_id, bundle.id);
-                Box::pin(do_install_inner(member.clone(), String::new(), Some(bundle.id.clone()))).await?;
+                tracing::info!(
+                    "installing bundle member '{}' (via bundle '{}')",
+                    cap_id,
+                    bundle.id
+                );
+                Box::pin(do_install_inner(
+                    member.clone(),
+                    String::new(),
+                    Some(bundle.id.clone()),
+                ))
+                .await?;
             }
             None => {
-                tracing::warn!("bundle member '{}' not found in any catalog — skipping", cap_id);
+                tracing::warn!(
+                    "bundle member '{}' not found in any catalog — skipping",
+                    cap_id
+                );
             }
         }
     }
@@ -150,29 +172,32 @@ async fn install_bundle_members(bundle: &PackageEntry, _fs_dir: &std::path::Path
 /// Fetch all catalogs (desktop, node, shared) and return a map of id → PackageEntry.
 async fn fetch_catalog_map() -> std::collections::HashMap<String, PackageEntry> {
     let mut client = StoreClient::node_store();
-    let mut map    = std::collections::HashMap::new();
+    let mut map = std::collections::HashMap::new();
 
     for namespace in &["apps", "desktop", "node", "shared"] {
         if let Ok(catalog) = client.fetch_catalog::<NodePackage>(namespace, false).await {
             for pkg in catalog.packages {
                 let icon = pkg.icon.and_then(|i| resolve_icon(&i));
-                map.insert(pkg.id.clone(), PackageEntry {
-                    id:               pkg.id,
-                    name:             pkg.name,
-                    description:      pkg.description,
-                    version:          pkg.version,
-                    category:         pkg.category,
-                    kind:             pkg.kind,
-                    capabilities:     pkg.capabilities,
-                    tags:             pkg.tags,
-                    icon,
-                    store_path:       pkg.path,
-                    installed:        false,
-                    update_available: false,
-                    license:          pkg.license,
-                    author:           pkg.author,
-                    installed_by:     None,
-                });
+                map.insert(
+                    pkg.id.clone(),
+                    PackageEntry {
+                        id: pkg.id,
+                        name: pkg.name,
+                        description: pkg.description,
+                        version: pkg.version,
+                        category: pkg.category,
+                        kind: pkg.kind,
+                        capabilities: pkg.capabilities,
+                        tags: pkg.tags,
+                        icon,
+                        store_path: pkg.path,
+                        installed: false,
+                        update_available: false,
+                        license: pkg.license,
+                        author: pkg.author,
+                        installed_by: None,
+                    },
+                );
             }
         }
     }
@@ -191,11 +216,14 @@ async fn fetch_catalog_map() -> std::collections::HashMap<String, PackageEntry> 
 ///
 /// `installed_by`: if Some, this is a bundle dependency — missing binaries are
 /// skipped with a warning instead of failing the whole installation.
-async fn install_app_binary(package: &PackageEntry, installed_by: Option<&str>) -> Result<Option<String>, String> {
+async fn install_app_binary(
+    package: &PackageEntry,
+    installed_by: Option<&str>,
+) -> Result<Option<String>, String> {
     // Debug builds (cargo build / dx serve) are always dev mode.
     // FS_DEV=1 allows overriding in release builds (e.g. CI, staging).
-    let is_dev = cfg!(debug_assertions)
-        || std::env::var("FS_DEV").map(|v| v == "1").unwrap_or(false);
+    let is_dev =
+        cfg!(debug_assertions) || std::env::var("FS_DEV").map(|v| v == "1").unwrap_or(false);
     if !is_dev {
         // Production: would download from catalog distribution URL.
         // Not yet implemented — just register without a file path for now.
@@ -208,9 +236,9 @@ async fn install_app_binary(package: &PackageEntry, installed_by: Option<&str>) 
 
     // Dev mode: find local Cargo build
     if let Some(path) = find_local_build_binary(&package.id) {
-        let dest_dir = std::path::PathBuf::from(
-            std::env::var("HOME").unwrap_or_else(|_| ".".into())
-        ).join(".local/share/fsn/bin");
+        let dest_dir =
+            std::path::PathBuf::from(std::env::var("HOME").unwrap_or_else(|_| ".".into()))
+                .join(".local/share/fsn/bin");
         std::fs::create_dir_all(&dest_dir).map_err(|e| e.to_string())?;
 
         let binary_name = std::path::Path::new(&path)
@@ -220,7 +248,11 @@ async fn install_app_binary(package: &PackageEntry, installed_by: Option<&str>) 
         let dest = dest_dir.join(&binary_name);
 
         std::fs::copy(&path, &dest).map_err(|e| {
-            format!("Failed to copy local build '{}' to '{}': {e}", path, dest.display())
+            format!(
+                "Failed to copy local build '{}' to '{}': {e}",
+                path,
+                dest.display()
+            )
         })?;
 
         // Make executable
@@ -232,7 +264,9 @@ async fn install_app_binary(package: &PackageEntry, installed_by: Option<&str>) 
 
         tracing::info!(
             "[dev] App '{}' installed from local build: {} → {}",
-            package.id, path, dest.display()
+            package.id,
+            path,
+            dest.display()
         );
         return Ok(Some(dest.to_string_lossy().into_owned()));
     }
@@ -264,16 +298,16 @@ async fn install_app_binary(package: &PackageEntry, installed_by: Option<&str>) 
 /// Add a new row here whenever a new locally-built package is registered.
 static LOCAL_BUILD_BINARIES: &[(&str, &str, &str)] = &[
     // (package_id,           repo_dir,     binary_name)
-    ("node",                  "fs-node",    "fsn"),
-    ("apps/fs-node",          "fs-node",    "fsn"),
-    ("desktop",               "fs-desktop", "fs-desktop"),
-    ("apps/fs-desktop",       "fs-desktop", "fs-desktop"),
-    ("apps/fs-store-app",     "fs-desktop", "fs-desktop"),
-    ("init",                  "fs-init",    "fs-init"),
-    ("apps/fs-init",          "fs-init",    "fs-init"),
-    ("browser",               "fs-browser", "fs-browser"),
-    ("apps/fs-browser",       "fs-browser", "fs-browser"),
-    ("browser/fs-browser",    "fs-browser", "fs-browser"),
+    ("node", "fs-node", "fsn"),
+    ("apps/fs-node", "fs-node", "fsn"),
+    ("desktop", "fs-desktop", "fs-desktop"),
+    ("apps/fs-desktop", "fs-desktop", "fs-desktop"),
+    ("apps/fs-store-app", "fs-desktop", "fs-desktop"),
+    ("init", "fs-init", "fs-init"),
+    ("apps/fs-init", "fs-init", "fs-init"),
+    ("browser", "fs-browser", "fs-browser"),
+    ("apps/fs-browser", "fs-browser", "fs-browser"),
+    ("browser/fs-browser", "fs-browser", "fs-browser"),
 ];
 
 /// Look up `(repo_dir, binary_name)` for a known catalog ID.
@@ -305,19 +339,20 @@ fn find_local_build_binary(id: &str) -> Option<String> {
     let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
     let base = std::path::PathBuf::from(&home).join("Server");
 
-    let (repo_dir, binary_name): (String, String) = if let Some((dir, bin)) = lookup_local_build_binary(id) {
-        (dir.to_string(), bin.to_string())
-    } else {
-        // Strip catalog namespace prefix (e.g. "apps/", "containers/"), use the last segment.
-        let slug = id.rsplit('/').next().unwrap_or(id);
-        // Ensure repo dir has "fs-" prefix.
-        let dir = if slug.starts_with("fs-") {
-            slug.to_string()
+    let (repo_dir, binary_name): (String, String) =
+        if let Some((dir, bin)) = lookup_local_build_binary(id) {
+            (dir.to_string(), bin.to_string())
         } else {
-            format!("fs-{slug}")
+            // Strip catalog namespace prefix (e.g. "apps/", "containers/"), use the last segment.
+            let slug = id.rsplit('/').next().unwrap_or(id);
+            // Ensure repo dir has "fs-" prefix.
+            let dir = if slug.starts_with("fs-") {
+                slug.to_string()
+            } else {
+                format!("fs-{slug}")
+            };
+            (dir.clone(), dir)
         };
-        (dir.clone(), dir)
-    };
 
     let repo = base.join(&repo_dir);
     for profile in &["release", "debug"] {
@@ -332,12 +367,12 @@ fn find_local_build_binary(id: &str) -> Option<String> {
 
 /// Download and install a language pack (`ui.toml`).
 async fn install_language_pack(
-    package:    &PackageEntry,
+    package: &PackageEntry,
     store_path: Option<String>,
-    fs_dir:     &std::path::Path,
+    fs_dir: &std::path::Path,
 ) -> Result<Option<String>, String> {
     let base = store_path.unwrap_or_else(|| format!("packages/i18n/{}", package.id));
-    let url  = format!("{base}/ui.toml");
+    let url = format!("{base}/ui.toml");
     match StoreClient::node_store().fetch_raw(&url).await {
         Ok(content) => {
             let dest_dir = fs_dir.join("i18n").join(&package.id);
@@ -355,12 +390,12 @@ async fn install_language_pack(
 
 /// Download and install a theme file (`theme.css`).
 async fn install_theme_file(
-    package:    &PackageEntry,
+    package: &PackageEntry,
     store_path: Option<String>,
-    fs_dir:     &std::path::Path,
+    fs_dir: &std::path::Path,
 ) -> Result<Option<String>, String> {
     let base = store_path.unwrap_or_else(|| format!("packages/themes/{}", package.id));
-    let url  = format!("{base}/theme.css");
+    let url = format!("{base}/theme.css");
     match StoreClient::node_store().fetch_raw(&url).await {
         Ok(content) => {
             let dest_dir = fs_dir.join("themes");
@@ -382,10 +417,10 @@ async fn install_theme_file(
 ///  3. Try `fsn container install <compose_path>` (adds Quadlet + systemd unit)
 ///  4. systemctl --user daemon-reload
 async fn install_container(
-    package:    &PackageEntry,
+    package: &PackageEntry,
     store_path: Option<String>,
-    fs_dir:    &std::path::Path,
-    env_vars:   &str,
+    fs_dir: &std::path::Path,
+    env_vars: &str,
 ) -> Result<Option<String>, String> {
     let base = store_path.unwrap_or_else(|| format!("packages/containers/{}", package.id));
 
@@ -415,16 +450,20 @@ async fn install_container(
             // No compose file in store — create a placeholder so the user can
             // edit it manually and re-run `fsn container install`.
             let dest = service_dir.join("compose.yml");
-            std::fs::write(&dest, format!(
-                "# Compose file for {name}\n\
+            std::fs::write(
+                &dest,
+                format!(
+                    "# Compose file for {name}\n\
                  # Edit this file and run: fsn container install {path}\n\
                  services:\n\
                  #  {id}:\n\
                  #    image: ...\n",
-                name = package.name,
-                id   = package.id,
-                path = dest.display(),
-            )).map_err(|e| e.to_string())?;
+                    name = package.name,
+                    id = package.id,
+                    path = dest.display(),
+                ),
+            )
+            .map_err(|e| e.to_string())?;
             dest
         }
     };
@@ -473,7 +512,9 @@ async fn install_container(
 /// Fetches a compose file from the store and extracts environment variable
 /// names so the configure step can show pre-populated input fields.
 pub async fn fetch_container_env_vars(package: &PackageEntry) -> Vec<String> {
-    let base = package.store_path.as_deref()
+    let base = package
+        .store_path
+        .as_deref()
         .map(|p| p.trim_end_matches('/').to_string())
         .unwrap_or_else(|| format!("node/modules/{}", package.id));
 
@@ -491,7 +532,7 @@ pub async fn fetch_container_env_vars(package: &PackageEntry) -> Vec<String> {
 /// Conductor will do the proper analysis when installing.
 pub fn extract_env_var_names(yaml: &str) -> Vec<String> {
     let mut in_env = false;
-    let mut vars   = Vec::new();
+    let mut vars = Vec::new();
 
     for line in yaml.lines() {
         let trimmed = line.trim();
@@ -533,16 +574,8 @@ pub fn extract_env_var_names(yaml: &str) -> Vec<String> {
 #[component]
 pub fn InstallPopup(result: InstallResult, on_close: EventHandler<()>) -> Element {
     let (icon, title, detail) = match &result {
-        InstallResult::Success => (
-            "✅",
-            fs_i18n::t("store.install.success"),
-            String::new(),
-        ),
-        InstallResult::Failed(err) => (
-            "❌",
-            fs_i18n::t("store.install.failed"),
-            err.clone(),
-        ),
+        InstallResult::Success => ("✅", fs_i18n::t("store.install.success"), String::new()),
+        InstallResult::Failed(err) => ("❌", fs_i18n::t("store.install.failed"), err.clone()),
     };
 
     rsx! {

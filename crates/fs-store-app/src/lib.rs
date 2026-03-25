@@ -1,10 +1,10 @@
 pub mod app;
 pub mod browser;
+pub mod install_wizard;
+pub mod installed_list;
 pub mod missing_icon;
 pub mod node_package;
-pub mod installed_list;
 pub mod package_card;
-pub mod install_wizard;
 pub mod package_detail;
 pub mod state;
 pub mod store_settings;
@@ -22,6 +22,10 @@ const I18N_SNIPPETS: &[(&str, &str)] = &[
 pub struct I18nPlugin;
 
 impl fs_i18n::SnippetPlugin for I18nPlugin {
-    fn name(&self) -> &str { "fs-store-app" }
-    fn snippets(&self) -> &[(&str, &str)] { I18N_SNIPPETS }
+    fn name(&self) -> &str {
+        "fs-store-app"
+    }
+    fn snippets(&self) -> &[(&str, &str)] {
+        I18N_SNIPPETS
+    }
 }
