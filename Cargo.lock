@@ -1751,10 +1751,8 @@ name = "fs-ai"
 version = "0.1.0"
 dependencies = [
  "dioxus",
- "fs-components",
  "fs-i18n",
  "fs-manager-ai",
- "serde_json",
 ]
 
 [[package]]
@@ -1776,11 +1774,8 @@ dependencies = [
  "chrono",
  "dioxus",
  "fs-components",
- "fs-db-desktop",
  "fs-i18n",
  "serde",
- "serde_json",
- "tokio",
  "toml 1.0.7+spec-1.1.0",
 ]
 
@@ -1882,12 +1877,10 @@ dependencies = [
  "chrono",
  "dioxus",
  "fs-components",
- "fs-db-desktop",
  "fs-i18n",
  "reqwest 0.13.2",
  "serde",
  "serde_json",
- "tokio",
 ]
 
 [[package]]
@@ -1943,7 +1936,6 @@ name = "fs-managers"
 version = "0.1.0"
 dependencies = [
  "dioxus",
- "fs-components",
  "fs-i18n",
  "fs-manager-container",
  "fs-manager-cursor",
@@ -2012,8 +2004,6 @@ dependencies = [
  "dioxus",
  "fs-components",
  "fs-i18n",
- "serde",
- "toml 1.0.7+spec-1.1.0",
 ]
 
 [[package]]
