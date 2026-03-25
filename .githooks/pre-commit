@@ -26,18 +26,14 @@ require_tool clippy clippy
 STAGED=$(git diff --cached --name-only --diff-filter=ACMR | grep '\.rs$' || true)
 
 if [ -z "$STAGED" ]; then
+  # No Rust files staged — only check toml/config changes with fmt
   echo "  No staged .rs files — skipping clippy and tests."
   echo -e "${GREEN}[FS] All checks passed.${NC}"
   exit 0
 fi
 
-# ── Collect workspace members ─────────────────────────────────────────────────
-# Use cargo metadata to get only workspace members (excludes vendor/external packages)
-mapfile -t WORKSPACE_MEMBERS < <(cargo metadata --no-deps --format-version 1 2>/dev/null \
-  | python3 -c "import json,sys; data=json.load(sys.stdin); [print(p['name']) for p in data.get('packages',[])]" \
-  2>/dev/null || true)
-
 # ── Detect affected packages ──────────────────────────────────────────────────
+# For each staged .rs file, walk up to find its Cargo.toml and extract the package name.
 PKGS=()
 for f in $STAGED; do
   dir=$(dirname "$f")
@@ -46,17 +42,7 @@ for f in $STAGED; do
     if [ -f "$toml" ]; then
       name=$(grep -m1 '^name' "$toml" | sed 's/name *= *"\(.*\)"/\1/')
       if [ -n "$name" ]; then
-        # Only include workspace members (skip vendor/external packages)
-        if [ ${#WORKSPACE_MEMBERS[@]} -eq 0 ]; then
-          PKGS+=("$name")
-        else
-          for wm in "${WORKSPACE_MEMBERS[@]}"; do
-            if [ "$wm" = "$name" ]; then
-              PKGS+=("$name")
-              break
-            fi
-          done
-        fi
+        PKGS+=("$name")
       fi
       break
     fi
@@ -68,7 +54,7 @@ done
 mapfile -t PKGS < <(printf '%s\n' "${PKGS[@]}" | sort -u)
 
 if [ ${#PKGS[@]} -eq 0 ]; then
-  echo "  No staged files map to workspace packages — skipping."
+  echo "  Could not map staged files to packages — skipping."
   echo -e "${GREEN}[FS] All checks passed.${NC}"
   exit 0
 fi
@@ -85,23 +71,18 @@ echo "  [1/3] Format check..."
 cargo fmt "${PKG_FLAGS[@]}" -- --check || fail "Format issues found. Run: cargo fmt ${PKG_FLAGS[*]}"
 
 # ── Clippy ────────────────────────────────────────────────────────────────────
-# Note: cross-repo path dependencies may have pre-existing compilation errors.
-# Clippy failures due to dependency compilation errors are reported as warnings.
 echo "  [2/3] Clippy..."
-if ! RUSTFLAGS="-D warnings" cargo clippy "${PKG_FLAGS[@]}" --all-targets -- \
+RUSTFLAGS="-D warnings" cargo clippy "${PKG_FLAGS[@]}" --all-targets -- \
   -D clippy::large_enum_variant \
   -D clippy::cognitive_complexity \
   -D clippy::too_many_arguments \
   -D clippy::too_many_lines \
   -D clippy::wildcard_imports \
-  -D clippy::unused_self 2>&1; then
-  echo -e "${YELLOW}  WARNING: Clippy check failed (may be due to cross-repo dependency state). Proceeding.${NC}"
-fi
+  -D clippy::unused_self \
+  || fail "Clippy found issues. Fix them before committing."
 
 # ── Tests ─────────────────────────────────────────────────────────────────────
 echo "  [3/3] Tests..."
-if ! cargo test "${PKG_FLAGS[@]}" 2>&1; then
-  echo -e "${YELLOW}  WARNING: Tests failed (may be due to cross-repo dependency state). Proceeding.${NC}"
-fi
+cargo test "${PKG_FLAGS[@]}" || fail "Tests failed."
 
 echo -e "${GREEN}[FS] All checks passed.${NC}"
