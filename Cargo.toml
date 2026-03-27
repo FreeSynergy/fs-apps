@@ -40,10 +40,10 @@ fs-managers      = { path = "crates/fs-managers" }
 fs-types      = { path = "../fs-libs/fs-types" }
 fs-store      = { path = "../fs-store/crates/fs-store" }
 fs-error      = { path = "../fs-libs/fs-error" }
-fs-i18n       = { path = "../fs-libs/fs-i18n", features = ["dioxus"] }
-fs-components = { path = "../fs-libs/fs-components" }
-fs-container  = { path = "../fs-libs/fs-container" }
-fs-pkg        = { path = "../fs-libs/fs-pkg" }
+fs-i18n       = { path = "../fs-i18n", features = ["dioxus"] }
+fs-components = { path = "../fs-components" }
+fs-container  = { path = "../fs-container" }
+fs-pkg        = { path = "../fs-packages/fs-pkg" }
 
 # fs-desktop — desktop DB (shared schema layer)
 fs-db-desktop = { path = "../fs-desktop/crates/fs-db-desktop" }
