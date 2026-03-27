@@ -217,6 +217,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "backon"
+version = "1.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cffb0e931875b666fc4fcb20fee52e9bbd1ef836fd9e9e04ec21555f9f85f7ef"
+dependencies = [
+ "fastrand",
+ "gloo-timers",
+ "tokio",
+]
+
+[[package]]
 name = "base64"
 version = "0.22.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1768,23 +1779,28 @@ dependencies = [
 ]
 
 [[package]]
-name = "fs-browser"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "dioxus",
- "fs-components",
- "fs-i18n",
- "serde",
- "toml 1.0.7+spec-1.1.0",
-]
-
-[[package]]
 name = "fs-builder"
 version = "0.1.0"
 dependencies = [
  "dioxus",
  "fs-i18n",
+]
+
+[[package]]
+name = "fs-bus"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "backon",
+ "chrono",
+ "fs-types",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "toml 1.0.7+spec-1.1.0",
+ "tracing",
+ "uuid",
 ]
 
 [[package]]
@@ -1871,6 +1887,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "fs-inventory"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "fs-bus",
+ "fs-types",
+ "sea-orm",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tracing",
+]
+
+[[package]]
 name = "fs-lenses"
 version = "0.1.0"
 dependencies = [
@@ -1928,7 +1959,11 @@ dependencies = [
 name = "fs-manager-theme"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "fs-core",
+ "fs-inventory",
+ "fs-types",
+ "tokio",
 ]
 
 [[package]]
@@ -3210,6 +3245,18 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
+]
+
+[[package]]
+name = "gloo-timers"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bbb143cf96099802033e0d4f4963b19fd2e0b728bcf076cd9cf7f6634f092994"
+dependencies = [
+ "futures-channel",
+ "futures-core",
+ "js-sys",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -7001,7 +7048,9 @@ version = "1.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a68d3c8f01c0cfa54a75291d83601161799e4a89a39e0929f4b0354d88757a37"
 dependencies = [
+ "getrandom 0.4.2",
  "js-sys",
+ "serde_core",
  "wasm-bindgen",
 ]
 
