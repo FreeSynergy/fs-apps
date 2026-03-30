@@ -1,0 +1,9 @@
+[package]
+name        = "fs-theme-app"
+version     = "0.1.0"
+type        = "program"
+description = "FreeSynergy theme manager — colors, fonts, window chrome"
+
+[capabilities]
+provides = ["theme.ui"]
+requires = ["theme.loader"]

@@ -27,6 +27,7 @@ impl UnitActiveStateDisplay for UnitActiveState {
         }
     }
 
+    #[allow(clippy::match_same_arms)]
     fn status_color(&self) -> &'static str {
         match self {
             UnitActiveState::Active => "var(--fs-success)",
@@ -38,6 +39,7 @@ impl UnitActiveStateDisplay for UnitActiveState {
         }
     }
 
+    #[allow(clippy::match_same_arms)]
     fn status_bg(&self) -> &'static str {
         match self {
             UnitActiveState::Active => "rgba(34,197,94,0.1)",

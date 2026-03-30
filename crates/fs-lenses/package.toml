@@ -1,0 +1,8 @@
+[package]
+name        = "fs-lenses"
+version     = "0.1.0"
+type        = "program"
+description = "FreeSynergy Lenses — aggregated cross-service information views"
+
+[capabilities]
+provides = ["lenses.view"]

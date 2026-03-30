@@ -1,0 +1,8 @@
+[package]
+name        = "fs-managers"
+version     = "0.1.0"
+type        = "program"
+description = "FreeSynergy managers — unified panel for language, theme, icon, cursor, and container settings"
+
+[capabilities]
+provides = ["managers.ui", "managers.language", "managers.theme", "managers.icons", "managers.cursor"]

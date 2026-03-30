@@ -115,7 +115,7 @@ async fn do_install_inner(
     PackageRegistry::install(InstalledPackage {
         id: package.id.clone(),
         name: package.name.clone(),
-        kind: package.kind.clone(),
+        kind: package.kind,
         version: package.version.clone(),
         icon: icon_content,
         file_path,
@@ -198,6 +198,7 @@ async fn fetch_catalog_map() -> std::collections::HashMap<String, PackageEntry> 
 /// `installed_by`: if Some, this is a bundle dependency — missing binaries are
 /// skipped with a warning instead of failing the whole installation.
 #[allow(clippy::cognitive_complexity)]
+#[allow(clippy::unused_async)]
 async fn install_app_binary(
     package: &PackageEntry,
     installed_by: Option<&str>,
@@ -225,8 +226,7 @@ async fn install_app_binary(
 
         let binary_name = std::path::Path::new(&path)
             .file_name()
-            .map(|n| n.to_string_lossy().into_owned())
-            .unwrap_or_else(|| package.id.clone());
+            .map_or_else(|| package.id.clone(), |n| n.to_string_lossy().into_owned());
         let dest = dest_dir.join(&binary_name);
 
         std::fs::copy(&path, &dest).map_err(|e| {
@@ -423,32 +423,29 @@ async fn install_container(
     let service_dir = fs_dir.join("services").join(&package.id);
     std::fs::create_dir_all(&service_dir).map_err(|e| e.to_string())?;
 
-    let compose_path = match compose_content {
-        Some((content, filename)) => {
-            let dest = service_dir.join(filename);
-            std::fs::write(&dest, content).map_err(|e| e.to_string())?;
-            dest
-        }
-        None => {
-            // No compose file in store — create a placeholder so the user can
-            // edit it manually and re-run `fsn container install`.
-            let dest = service_dir.join("compose.yml");
-            std::fs::write(
-                &dest,
-                format!(
-                    "# Compose file for {name}\n\
-                 # Edit this file and run: fsn container install {path}\n\
-                 services:\n\
-                 #  {id}:\n\
-                 #    image: ...\n",
-                    name = package.name,
-                    id = package.id,
-                    path = dest.display(),
-                ),
-            )
-            .map_err(|e| e.to_string())?;
-            dest
-        }
+    let compose_path = if let Some((content, filename)) = compose_content {
+        let dest = service_dir.join(filename);
+        std::fs::write(&dest, content).map_err(|e| e.to_string())?;
+        dest
+    } else {
+        // No compose file in store — create a placeholder so the user can
+        // edit it manually and re-run `fsn container install`.
+        let dest = service_dir.join("compose.yml");
+        std::fs::write(
+            &dest,
+            format!(
+                "# Compose file for {name}\n\
+             # Edit this file and run: fsn container install {path}\n\
+             services:\n\
+             #  {id}:\n\
+             #    image: ...\n",
+                name = package.name,
+                id = package.id,
+                path = dest.display(),
+            ),
+        )
+        .map_err(|e| e.to_string())?;
+        dest
     };
 
     // Write .env file
@@ -495,11 +492,10 @@ async fn install_container(
 /// Fetches a compose file from the store and extracts environment variable
 /// names so the configure step can show pre-populated input fields.
 pub async fn fetch_container_env_vars(package: &PackageEntry) -> Vec<String> {
-    let base = package
-        .store_path
-        .as_deref()
-        .map(|p| p.trim_end_matches('/').to_string())
-        .unwrap_or_else(|| format!("node/modules/{}", package.id));
+    let base = package.store_path.as_deref().map_or_else(
+        || format!("node/modules/{}", package.id),
+        |p| p.trim_end_matches('/').to_string(),
+    );
 
     for name in &["compose.yml", "docker-compose.yml", "container.yml"] {
         let url = format!("{base}/{name}");

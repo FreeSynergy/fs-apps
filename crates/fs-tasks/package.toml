@@ -1,0 +1,8 @@
+[package]
+name        = "fs-tasks"
+version     = "0.1.0"
+type        = "program"
+description = "FreeSynergy task automation — pipeline editor with Data Offers/Accepts"
+
+[capabilities]
+provides = ["tasks.ui", "tasks.pipeline"]

@@ -32,8 +32,7 @@ pub fn CursorManagerPanel() -> Element {
 
     let first_view = sets
         .first()
-        .map(|s| View::SetDetail(s.id.clone()))
-        .unwrap_or(View::NewSet);
+        .map_or(View::NewSet, |s| View::SetDetail(s.id.clone()));
 
     let mut view = use_signal(|| first_view);
     let mut active = use_signal(|| sets.first().map(|s| s.id.clone()).unwrap_or_default());
@@ -360,8 +359,7 @@ fn SetDetailView(
                         {
                             let filename = slot.filename();
                             let svg_path = format!(
-                                "file://{}/cursor-sets/{}/{}.svg",
-                                icons_root, set_id, filename
+                                "file://{icons_root}/cursor-sets/{set_id}/{filename}.svg"
                             );
                             let has_slot = set.present_slots.contains(slot);
                             rsx! {
@@ -411,8 +409,7 @@ fn SetDetailView(
                     {
                         let filename = slot.filename();
                         let svg_path = format!(
-                            "file://{}/cursor-sets/{}/{}.svg",
-                            icons_root, set_id, filename
+                            "file://{icons_root}/cursor-sets/{set_id}/{filename}.svg"
                         );
                         let present = set.present_slots.contains(slot);
                         let opacity = if present { "1" } else { "0.3" };

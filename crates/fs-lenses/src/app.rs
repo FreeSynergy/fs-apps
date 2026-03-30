@@ -306,7 +306,7 @@ fn LensDetail(lens: Lens, on_open_url: EventHandler<String>) -> Element {
 
 // ── CSS ───────────────────────────────────────────────────────────────────────
 
-const LENSES_CSS: &str = r#"
+const LENSES_CSS: &str = r"
 .fs-lenses {
     display: flex;
     flex-direction: column;
@@ -509,4 +509,4 @@ const LENSES_CSS: &str = r#"
 .fs-lenses__btn-link:hover {
     background: rgba(6,182,212,0.1);
 }
-"#;
+";

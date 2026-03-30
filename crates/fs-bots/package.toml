@@ -1,0 +1,9 @@
+[package]
+name        = "fs-bots"
+version     = "0.1.0"
+type        = "program"
+description = "FreeSynergy bot manager — configure bots and connect them to messengers"
+
+[capabilities]
+provides = ["bots.ui"]
+requires = ["channel.adapter"]

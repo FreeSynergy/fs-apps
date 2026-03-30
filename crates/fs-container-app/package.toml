@@ -1,0 +1,9 @@
+[package]
+name        = "fs-container-app"
+version     = "0.1.0"
+type        = "program"
+description = "FreeSynergy container manager — install, start, stop, and inspect containers"
+
+[capabilities]
+provides = ["container.ui"]
+requires = ["container.engine"]

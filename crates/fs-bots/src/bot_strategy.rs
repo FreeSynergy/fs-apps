@@ -56,7 +56,9 @@ impl BotStrategy for BroadcastStrategy {
                 }
                 Ok(())
             }
-            _ => Err("Action not supported by BroadcastStrategy".into()),
+            BotAction::ResolveApproval { .. } => {
+                Err("Action not supported by BroadcastStrategy".into())
+            }
         }
     }
 }
@@ -83,7 +85,9 @@ impl BotStrategy for GatekeeperStrategy {
                 bot.resolve_approval(&id, approval_action);
                 Ok(())
             }
-            _ => Err("Action not supported by GatekeeperStrategy".into()),
+            BotAction::SendBroadcast { .. } => {
+                Err("Action not supported by GatekeeperStrategy".into())
+            }
         }
     }
 }
@@ -109,7 +113,7 @@ impl BotKind {
         match self {
             Self::Broadcast => Box::new(BroadcastStrategy),
             Self::Gatekeeper => Box::new(GatekeeperStrategy),
-            _ => Box::new(DefaultStrategy),
+            Self::Monitor | Self::Digest | Self::UserBot => Box::new(DefaultStrategy),
         }
     }
 }

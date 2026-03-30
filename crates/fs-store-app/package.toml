@@ -1,0 +1,9 @@
+[package]
+name        = "fs-store-app"
+version     = "0.1.0"
+type        = "program"
+description = "FreeSynergy package manager GUI — browse, install, and update packages"
+
+[capabilities]
+provides = ["store.ui"]
+requires = ["store.catalog", "store.install"]

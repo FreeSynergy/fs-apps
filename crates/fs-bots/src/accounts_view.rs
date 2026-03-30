@@ -65,7 +65,7 @@ pub fn AccountsView() -> Element {
                     onclick: move |_| {
                         form_platform.set(Platform::Telegram);
                         form_label.set(String::new());
-                        form_creds.set(vec!["".to_string(); Platform::Telegram.credential_fields().len()]);
+                        form_creds.set(vec![String::new(); Platform::Telegram.credential_fields().len()]);
                         show_form.set(true);
                     },
                     "+ Add Account"
@@ -99,7 +99,7 @@ pub fn AccountsView() -> Element {
                                     let p = Platform::from_protocol_str(&e.value());
                                     let field_count = p.credential_fields().len();
                                     form_platform.set(p);
-                                    form_creds.set(vec!["".to_string(); field_count]);
+                                    form_creds.set(vec![String::new(); field_count]);
                                 },
                                 for p in Platform::all() {
                                     option {

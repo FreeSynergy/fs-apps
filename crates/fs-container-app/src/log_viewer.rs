@@ -63,7 +63,7 @@ async fn fetch_journal(unit: &str, lines: u32) -> Vec<String> {
     };
     String::from_utf8_lossy(&out.stdout)
         .lines()
-        .map(|l| l.to_string())
+        .map(std::string::ToString::to_string)
         .collect()
 }
 

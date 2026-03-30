@@ -70,7 +70,7 @@ pub fn load_repos() -> Vec<RepoEntry> {
 
     // Force primary = true on any entry that matches the official URL.
     // Survives serialization round-trips that might have cleared the flag.
-    for r in stores.iter_mut() {
+    for r in &mut stores {
         if r.url == official.url {
             r.primary = true;
         }
@@ -87,7 +87,7 @@ pub fn save_repos(repos: &[RepoEntry]) -> Result<(), String> {
 
     let existing = std::fs::read_to_string(&path).unwrap_or_default();
     let mut doc: toml::Value =
-        toml::from_str(&existing).unwrap_or(toml::Value::Table(Default::default()));
+        toml::from_str(&existing).unwrap_or(toml::Value::Table(toml::map::Map::default()));
 
     if let toml::Value::Table(ref mut root) = doc {
         let stores_val = toml::Value::try_from(repos.to_vec()).map_err(|e| e.to_string())?;

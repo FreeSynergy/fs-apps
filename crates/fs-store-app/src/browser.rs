@@ -52,8 +52,7 @@ pub fn resolve_icon_path(icon: &str) -> Option<String> {
     }
     // Relative path → prepend GitHub raw base
     Some(format!(
-        "https://raw.githubusercontent.com/FreeSynergy/fs-store/main/{}",
-        icon
+        "https://raw.githubusercontent.com/FreeSynergy/fs-store/main/{icon}"
     ))
 }
 
@@ -115,7 +114,10 @@ pub fn PackageBrowser(
 
     let query = search.to_lowercase();
     // Split query into individual words — all must match (AND logic)
-    let query_words: Vec<String> = query.split_whitespace().map(|w| w.to_string()).collect();
+    let query_words: Vec<String> = query
+        .split_whitespace()
+        .map(std::string::ToString::to_string)
+        .collect();
 
     let cur_filter = install_filter.read().clone();
     let filtered: Vec<PackageEntry> = packages
@@ -248,7 +250,9 @@ impl PackageEntry {
         installed_map: &HashMap<String, Option<String>>,
     ) -> Self {
         let installed = installed_map.contains_key(&pkg.id);
-        let installed_by = installed_map.get(&pkg.id).and_then(|v| v.clone());
+        let installed_by = installed_map
+            .get(&pkg.id)
+            .and_then(std::clone::Clone::clone);
         let icon = pkg.icon.and_then(|i| resolve_icon_path(&i));
         PackageEntry {
             id: pkg.id,

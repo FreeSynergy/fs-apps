@@ -1,0 +1,9 @@
+[package]
+name        = "fs-ai"
+version     = "0.1.0"
+type        = "program"
+description = "FreeSynergy AI assistant — local LLM chat and model management"
+
+[capabilities]
+provides = ["ai.assistant.ui"]
+requires = ["llm.provider"]

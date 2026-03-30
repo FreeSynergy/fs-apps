@@ -1,0 +1,8 @@
+[package]
+name        = "fs-builder"
+version     = "0.1.0"
+type        = "program"
+description = "FreeSynergy builder — analyze, validate, build, and publish packages"
+
+[capabilities]
+provides = ["builder.ui", "builder.pipeline"]

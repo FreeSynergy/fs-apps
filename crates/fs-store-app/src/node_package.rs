@@ -66,7 +66,6 @@ pub trait PackageKindExt {
 impl PackageKindExt for PackageKind {
     fn from_category(category_id: &str) -> Self {
         match category_id {
-            "apps" => Self::App,
             "containers" => Self::Container,
             "bundles" => Self::Bundle,
             "themes" => Self::Theme,

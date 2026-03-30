@@ -70,8 +70,7 @@ pub fn LanguageManagerPanel() -> Element {
     } else {
         subscribed
             .first()
-            .map(|l| View::Language(l.id.clone()))
-            .unwrap_or(View::Subscribe)
+            .map_or(View::Subscribe, |l| View::Language(l.id.clone()))
     };
 
     let mut view = use_signal(|| initial_view);
@@ -221,7 +220,7 @@ fn LanguageSidebar(
                             let is_active = lang_id == active_id;
                             let flag_html = lang.flag_svg().to_string();
                             let name      = lang.display_name.clone();
-                            let dir_rtl   = lang.meta().map(|m| m.is_rtl()).unwrap_or(false);
+                            let dir_rtl   = lang.meta().is_some_and(fs_i18n::LanguageMeta::is_rtl);
                             let bg = if is_sel {
                                 "background: var(--fs-sidebar-active-bg, rgba(6,182,212,0.15)); \
                                  color: var(--fs-color-primary, #06b6d4);"
@@ -413,10 +412,10 @@ fn LanguageDetailPane(
                             is_active,
                             has_flag,
                             flag_html: flag_html.clone(),
-                            meta_name:      meta.map(|m| m.name).unwrap_or(""),
-                            meta_script:    meta.map(|m| m.script).unwrap_or(""),
-                            meta_family:    meta.map(|m| m.family).unwrap_or(""),
-                            meta_continent: meta.map(|m| m.continent).unwrap_or(""),
+                            meta_name:      meta.map_or("", |m| m.name),
+                            meta_script:    meta.map_or("", |m| m.script),
+                            meta_family:    meta.map_or("", |m| m.family),
+                            meta_continent: meta.map_or("", |m| m.continent),
                             pack_count: LanguageManager::new().registry()
                                             .packs_for_lang(&lang.id).len(),
                             on_set_active,
@@ -878,7 +877,7 @@ fn BuilderTab(lang_id: String) -> Element {
                             "✕ No SSH key"
                         }
                     },
-                    _ => rsx! {
+                    fs_manager_language::ContributorStatus::Unknown => rsx! {
                         span {
                             style: "font-size: 12px; padding: 3px 10px; \
                                     background: var(--fs-color-bg-overlay, #1e293b); \
@@ -961,9 +960,7 @@ fn SubscribeView(subscribed_ids: Vec<String>, on_subscribed: EventHandler<String
                             || meta.native_name.to_lowercase().contains(&q)
                             || meta.code.to_lowercase().contains(&q);
 
-                        if !matches {
-                            rsx! {}
-                        } else {
+                        if matches {
                             let code       = meta.code.to_string();
                             let is_already = subscribed_ids.contains(&code);
                             let lang       = fs_manager_language::Language::from_code(meta.code);
@@ -1039,6 +1036,8 @@ fn SubscribeView(subscribed_ids: Vec<String>, on_subscribed: EventHandler<String
                                     }
                                 }
                             }
+                        } else {
+                            rsx! {}
                         }
                     }
                 }
