@@ -1,0 +1,10 @@
+[package]
+id          = "freeSynergy.apps"
+name        = "FreeSynergy Apps"
+kind        = "workspace"
+version     = "0.1.0"
+description = "FreeSynergy application workspace — Store App, Browser, Lenses, Theme App, AI, Tasks, Bots, Builder, Container App, Managers"
+license     = "MIT"
+
+[service]
+# Individual app binaries; each app has its own gRPC + REST ports (see per-app CLAUDE.md)
