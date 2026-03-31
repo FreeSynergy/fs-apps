@@ -1,0 +1,9 @@
+[package]
+id          = "freesynergy/fs-browser"
+name        = "fs-browser"
+version     = "0.1.0"
+type        = "program"
+description = "FreeSynergy web browser — WebEngine abstraction, bookmarks, navigation history"
+license     = "MIT"
+authors     = ["FreeSynergy.Net"]
+repository  = "https://github.com/FreeSynergy/fs-apps"

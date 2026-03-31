@@ -1,5 +1,7 @@
 [workspace]
 members = [
+    # Browser
+    "crates/fs-browser",
     # UI Apps
     "crates/fs-store-app",
     "crates/fs-builder",

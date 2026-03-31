@@ -1,0 +1,64 @@
+[package]
+name        = "fs-browser"
+description = "FreeSynergy Browser — web browser with WebEngine abstraction, bookmarks, history"
+version.workspace   = true
+edition.workspace   = true
+license.workspace   = true
+
+[lib]
+name = "fs_browser"
+path = "src/lib.rs"
+
+[[bin]]
+name = "fs-browser"
+path = "src/main.rs"
+
+[features]
+default = []
+# servo = ["fs-web-engine/servo"]   # future: Servo engine integration
+
+[dependencies]
+# FS libraries
+fs-render     = { path = "../.././../fs-render" }
+fs-web-engine = { path = "../.././../fs-web-engine", features = ["stub"] }
+fs-i18n       = { path = "../.././../fs-i18n" }
+fs-error      = { path = "../.././../fs-libs/fs-error" }
+
+# Async
+async-trait = "0.1"
+tokio       = { version = "1", features = ["full"] }
+
+# Serialization
+serde      = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Error handling
+thiserror = "2"
+
+# IDs + time
+uuid   = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+
+# CLI
+clap = { version = "4", features = ["derive", "env"] }
+
+# gRPC
+tonic = "0.12"
+prost = "0.13"
+
+# REST + OpenAPI
+axum              = "0.7"
+utoipa            = { version = "5", features = ["axum_extras", "chrono"] }
+utoipa-swagger-ui = { version = "8", features = ["axum"] }
+tower-http        = { version = "0.6", features = ["trace"] }
+
+# Logging
+tracing            = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[build-dependencies]
+tonic-build         = "0.12"
+protoc-bin-vendored = "3"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }

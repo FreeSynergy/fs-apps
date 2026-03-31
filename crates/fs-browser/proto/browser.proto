@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+package browser;
+
+// ── BrowserService ────────────────────────────────────────────────────────────
+
+service BrowserService {
+  // Open a URL (fire-and-forget).
+  rpc OpenUrl(OpenUrlRequest) returns (OpenUrlResponse);
+
+  // Navigate: back / forward / reload.
+  rpc Navigate(NavigateRequest) returns (NavigateResponse);
+
+  // Return the navigation history.
+  rpc GetHistory(GetHistoryRequest) returns (GetHistoryResponse);
+
+  // List all saved bookmarks.
+  rpc ListBookmarks(ListBookmarksRequest) returns (ListBookmarksResponse);
+
+  // Add a bookmark.
+  rpc AddBookmark(AddBookmarkRequest) returns (AddBookmarkResponse);
+
+  // Remove a bookmark by ID.
+  rpc RemoveBookmark(RemoveBookmarkRequest) returns (RemoveBookmarkResponse);
+
+  // Health probe.
+  rpc Health(HealthRequest) returns (HealthResponse);
+}
+
+// ── Navigate direction ────────────────────────────────────────────────────────
+
+enum NavigationDirection {
+  BACK    = 0;
+  FORWARD = 1;
+  RELOAD  = 2;
+}
+
+// ── Messages ──────────────────────────────────────────────────────────────────
+
+message OpenUrlRequest {
+  string url = 1;
+}
+
+message OpenUrlResponse {
+  bool    ok      = 1;
+  string  message = 2;
+}
+
+message NavigateRequest {
+  NavigationDirection direction = 1;
+}
+
+message NavigateResponse {
+  bool           ok          = 1;
+  optional string current_url = 2;
+}
+
+message GetHistoryRequest {}
+
+message GetHistoryResponse {
+  repeated HistoryEntryProto entries = 1;
+}
+
+message ListBookmarksRequest {}
+
+message ListBookmarksResponse {
+  repeated BookmarkProto bookmarks = 1;
+}
+
+message AddBookmarkRequest {
+  string title = 1;
+  string url   = 2;
+}
+
+message AddBookmarkResponse {
+  BookmarkProto bookmark = 1;
+}
+
+message RemoveBookmarkRequest {
+  string id = 1;
+}
+
+message RemoveBookmarkResponse {
+  bool removed = 1;
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  bool   ok      = 1;
+  string version = 2;
+}
+
+// ── Domain types ──────────────────────────────────────────────────────────────
+
+message HistoryEntryProto {
+  string url        = 1;
+  string visited_at = 2;
+}
+
+message BookmarkProto {
+  string id         = 1;
+  string title      = 2;
+  string url        = 3;
+  string created_at = 4;
+}

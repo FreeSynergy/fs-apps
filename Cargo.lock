@@ -1956,6 +1956,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "fs-browser"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "axum 0.7.9",
+ "chrono",
+ "clap",
+ "fs-error",
+ "fs-i18n",
+ "fs-render",
+ "fs-web-engine",
+ "prost",
+ "protoc-bin-vendored",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tonic",
+ "tonic-build",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+ "utoipa",
+ "utoipa-swagger-ui",
+ "uuid",
+]
+
+[[package]]
 name = "fs-builder"
 version = "0.1.0"
 dependencies = [
@@ -2204,6 +2232,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "fs-render"
+version = "0.2.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "fs-store"
 version = "0.1.0"
 dependencies = [
@@ -2246,12 +2281,39 @@ dependencies = [
 ]
 
 [[package]]
+name = "fs-theme"
+version = "0.1.0"
+dependencies = [
+ "fs-error",
+ "serde",
+ "toml 1.0.7+spec-1.1.0",
+]
+
+[[package]]
 name = "fs-theme-app"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
+ "axum 0.7.9",
+ "clap",
  "dioxus",
  "fs-components",
+ "fs-error",
  "fs-i18n",
+ "fs-theme",
+ "prost",
+ "protoc-bin-vendored",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tonic",
+ "tonic-build",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+ "utoipa",
+ "utoipa-swagger-ui",
 ]
 
 [[package]]
@@ -2260,6 +2322,15 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "fs-web-engine"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "thiserror 2.0.18",
+ "url",
 ]
 
 [[package]]
@@ -7692,6 +7763,7 @@ dependencies = [
  "idna",
  "percent-encoding",
  "serde",
+ "serde_derive",
 ]
 
 [[package]]

@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package theme_app;
+
+service ThemeAppService {
+  // List all available theme names.
+  rpc ListThemes(ListThemesRequest) returns (ListThemesResponse);
+  // Get the currently active theme.
+  rpc GetActive(GetActiveRequest) returns (GetActiveResponse);
+  // Activate a theme by name.
+  rpc ActivateTheme(ActivateThemeRequest) returns (ActivateThemeResponse);
+  // Get a theme preview (returns CSS for the requested theme).
+  rpc PreviewTheme(PreviewThemeRequest) returns (PreviewThemeResponse);
+  // Service liveness check.
+  rpc Health(HealthRequest) returns (HealthResponse);
+}
+
+message ListThemesRequest {}
+
+message ThemeProto {
+  string name    = 1;
+  string version = 2;
+}
+
+message ListThemesResponse {
+  repeated ThemeProto themes = 1;
+}
+
+message GetActiveRequest {}
+
+message GetActiveResponse {
+  ThemeProto theme = 1;
+}
+
+message ActivateThemeRequest {
+  string name = 1;
+}
+
+message ActivateThemeResponse {
+  bool   ok    = 1;
+  string error = 2;
+}
+
+message PreviewThemeRequest {
+  string name = 1;
+}
+
+message PreviewThemeResponse {
+  string css   = 1;
+  bool   found = 2;
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  bool   ok      = 1;
+  string version = 2;
+}

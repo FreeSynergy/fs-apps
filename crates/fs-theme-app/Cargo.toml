@@ -21,4 +21,36 @@ web      = ["dioxus/web",     "fs-components/web"]
 [dependencies]
 fs-components = { workspace = true }
 fs-i18n       = { workspace = true }
+fs-theme      = { path = "../../../fs-theme" }
+fs-error      = { path = "../../../fs-libs/fs-error" }
 dioxus        = { workspace = true }
+
+async-trait = "0.1"
+serde       = { version = "1", features = ["derive"] }
+serde_json  = "1"
+thiserror   = "2"
+tracing     = "0.1"
+tokio       = { version = "1", features = ["full"] }
+
+# gRPC
+tonic = "0.12"
+prost = "0.13"
+
+# REST + OpenAPI
+axum              = "0.7"
+utoipa            = { version = "5", features = ["axum_extras"] }
+utoipa-swagger-ui = { version = "8", features = ["axum"] }
+tower-http        = { version = "0.6", features = ["trace"] }
+
+# CLI
+clap = { version = "4", features = ["derive", "env"] }
+
+# Logging
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[build-dependencies]
+tonic-build         = "0.12"
+protoc-bin-vendored = "3"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }
