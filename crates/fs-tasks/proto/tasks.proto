@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package tasks;
+
+service TasksService {
+  // List all task pipelines.
+  rpc ListTasks(ListTasksRequest) returns (ListTasksResponse);
+  // Create a new task pipeline.
+  rpc CreateTask(CreateTaskRequest) returns (CreateTaskResponse);
+  // Delete a task pipeline by id.
+  rpc DeleteTask(DeleteTaskRequest) returns (DeleteTaskResponse);
+  // Toggle a task pipeline enabled/disabled.
+  rpc ToggleTask(ToggleTaskRequest) returns (ToggleTaskResponse);
+  // Service liveness check.
+  rpc Health(HealthRequest) returns (HealthResponse);
+}
+
+message TaskProto {
+  string id             = 1;
+  string name           = 2;
+  bool   enabled        = 3;
+  string trigger_label  = 4;
+  string source_service = 5;
+  string target_service = 6;
+}
+
+message ListTasksRequest {}
+
+message ListTasksResponse {
+  repeated TaskProto tasks = 1;
+}
+
+message CreateTaskRequest {
+  string name = 1;
+}
+
+message CreateTaskResponse {
+  TaskProto task = 1;
+}
+
+message DeleteTaskRequest {
+  string id = 1;
+}
+
+message DeleteTaskResponse {
+  bool ok = 1;
+}
+
+message ToggleTaskRequest {
+  string id = 1;
+}
+
+message ToggleTaskResponse {
+  bool ok      = 1;
+  bool enabled = 2;
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  bool   ok      = 1;
+  string version = 2;
+}

@@ -1,11 +1,9 @@
-//! `fs-container` — FreeSynergy container service daemon and CLI.
-//!
-//! # Environment variables
+//! `fs-bots` — FreeSynergy Bot Manager daemon + CLI.
 //!
 //! | Variable       | Default |
 //! |----------------|---------|
-//! | `FS_GRPC_PORT` | `50093` |
-//! | `FS_REST_PORT` | `8093`  |
+//! | `FS_GRPC_PORT` | `50094` |
+//! | `FS_REST_PORT` | `8094`  |
 
 #![deny(clippy::all, clippy::pedantic, warnings)]
 #![allow(clippy::must_use_candidate)]
@@ -15,13 +13,12 @@
 #![allow(clippy::needless_pass_by_value)]
 
 use clap::Parser as _;
-use fs_container::QuadletManager;
 use tracing_subscriber::{fmt, EnvFilter};
 
-use fs_container_app::{
+use fs_bots::{
     cli::{Cli, Command},
-    controller::ContainerAppController,
-    grpc::{ContainerAppServiceServer, GrpcContainerApp},
+    controller::BotController,
+    grpc::{BotsServiceServer, GrpcBotsApp},
     rest,
 };
 
@@ -30,26 +27,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     fmt().with_env_filter(EnvFilter::from_default_env()).init();
 
     let args = Cli::parse();
-    let ctrl = ContainerAppController::new(QuadletManager::user_default());
+    let ctrl = BotController::new();
 
     match args.command {
         Command::Daemon => run_daemon(ctrl).await?,
-        ref cmd => run_cli(cmd, &ctrl).await,
+        ref cmd => run_cli(cmd, &ctrl),
     }
     Ok(())
 }
 
-async fn run_daemon(
-    ctrl: ContainerAppController<QuadletManager>,
-) -> Result<(), Box<dyn std::error::Error>> {
+async fn run_daemon(ctrl: BotController) -> Result<(), Box<dyn std::error::Error>> {
     let grpc_port: u16 = std::env::var("FS_GRPC_PORT")
         .ok()
         .and_then(|p| p.parse().ok())
-        .unwrap_or(50_093);
+        .unwrap_or(50_094);
     let rest_port: u16 = std::env::var("FS_REST_PORT")
         .ok()
         .and_then(|p| p.parse().ok())
-        .unwrap_or(8_093);
+        .unwrap_or(8_094);
 
     let grpc_addr: std::net::SocketAddr = ([0, 0, 0, 0], grpc_port).into();
     let rest_addr: std::net::SocketAddr = ([0, 0, 0, 0], rest_port).into();
@@ -59,9 +54,7 @@ async fn run_daemon(
     let grpc_ctrl = ctrl.clone();
     let grpc_task = tokio::spawn(async move {
         tonic::transport::Server::builder()
-            .add_service(ContainerAppServiceServer::new(GrpcContainerApp::new(
-                grpc_ctrl,
-            )))
+            .add_service(BotsServiceServer::new(GrpcBotsApp::new(grpc_ctrl)))
             .serve(grpc_addr)
             .await
             .unwrap();
@@ -76,37 +69,34 @@ async fn run_daemon(
     Ok(())
 }
 
-async fn run_cli(cmd: &Command, ctrl: &ContainerAppController<QuadletManager>) {
+fn run_cli(cmd: &Command, ctrl: &BotController) {
     match cmd {
         Command::Daemon => unreachable!(),
         Command::List => {
-            ctrl.refresh().await;
-            let snap = ctrl.snapshot();
-            if snap.containers.is_empty() {
-                println!("(no services)");
-            } else {
-                for c in snap.containers {
-                    println!("{:30}  {}", c.name, c.state_label);
-                }
+            for b in ctrl.list() {
+                println!(
+                    "{:20}  {:25}  {}  [{}]",
+                    b.id,
+                    b.name,
+                    b.kind.label(),
+                    if b.enabled { "on " } else { "off" },
+                );
             }
         }
-        Command::Start { name } => match ctrl.start(name).await {
-            Ok(()) => println!("Started {name}"),
-            Err(e) => {
-                eprintln!("Error: {e}");
+        Command::Enable { id } => {
+            if ctrl.enable(id) {
+                println!("Bot {id} enabled");
+            } else {
+                eprintln!("Bot {id} not found");
                 std::process::exit(1);
             }
-        },
-        Command::Stop { name } => match ctrl.stop(name).await {
-            Ok(()) => println!("Stopped {name}"),
-            Err(e) => {
-                eprintln!("Error: {e}");
+        }
+        Command::Disable { id } => {
+            if ctrl.disable(id) {
+                println!("Bot {id} disabled");
+            } else {
+                eprintln!("Bot {id} not found");
                 std::process::exit(1);
-            }
-        },
-        Command::Logs { name, lines } => {
-            for line in ctrl.logs(name, *lines).await {
-                println!("{line}");
             }
         }
     }

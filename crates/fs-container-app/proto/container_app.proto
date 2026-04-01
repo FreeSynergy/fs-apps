@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package container_app;
+
+service ContainerAppService {
+  // List all managed container services.
+  rpc ListServices(ListServicesRequest) returns (ListServicesResponse);
+  // Start a service by name.
+  rpc StartService(StartServiceRequest) returns (StartServiceResponse);
+  // Stop a service by name.
+  rpc StopService(StopServiceRequest) returns (StopServiceResponse);
+  // Service liveness check.
+  rpc Health(HealthRequest) returns (HealthResponse);
+}
+
+message ListServicesRequest {}
+
+message ServiceProto {
+  string name        = 1;
+  string state_label = 2;
+}
+
+message ListServicesResponse {
+  repeated ServiceProto services = 1;
+}
+
+message StartServiceRequest {
+  string name = 1;
+}
+
+message StartServiceResponse {
+  bool   ok    = 1;
+  string error = 2;
+}
+
+message StopServiceRequest {
+  string name = 1;
+}
+
+message StopServiceResponse {
+  bool   ok    = 1;
+  string error = 2;
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  bool   ok      = 1;
+  string version = 2;
+}

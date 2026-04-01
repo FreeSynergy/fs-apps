@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package builder_app;
+
+service BuilderService {
+  // Get current builder status.
+  rpc Status(StatusRequest) returns (StatusResponse);
+  // Service liveness check.
+  rpc Health(HealthRequest) returns (HealthResponse);
+}
+
+message StatusRequest {}
+
+message StatusResponse {
+  string status = 1;
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  bool   ok      = 1;
+  string version = 2;
+}

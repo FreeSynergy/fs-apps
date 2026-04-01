@@ -1,29 +1,27 @@
-use dioxus::prelude::*;
+//! `fs-builder` — FreeSynergy package builder.
+//!
+//! Pipeline Pattern:
+//! - [`BuildPipeline`] — Analyse → Validate → Build → Publish
+//! - [`BuildStep`] — Chain of Responsibility trait
+//! - [`BuilderView`] — `FsView` impl (in `view.rs`, only file importing fs-render)
 
-const I18N_SNIPPETS: &[(&str, &str)] = &[
-    ("en", include_str!("../assets/i18n/en.toml")),
-    ("de", include_str!("../assets/i18n/de.toml")),
-];
+#![deny(clippy::all, clippy::pedantic, warnings)]
+#![allow(clippy::must_use_candidate)]
+#![allow(clippy::missing_errors_doc)]
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::ignored_unit_patterns)]
+#![allow(clippy::needless_pass_by_value)]
+#![allow(clippy::return_self_not_must_use)]
+#![allow(clippy::missing_panics_doc)]
+#![allow(clippy::needless_for_each)]
 
-/// i18n plugin for fs-builder (`builder.*` keys).
-pub struct I18nPlugin;
+pub mod cli;
+pub mod controller;
+pub mod grpc;
+pub mod model;
+pub mod rest;
+pub mod view;
 
-impl fs_i18n::SnippetPlugin for I18nPlugin {
-    fn name(&self) -> &'static str {
-        "fs-builder"
-    }
-    fn snippets(&self) -> &[(&str, &str)] {
-        I18N_SNIPPETS
-    }
-}
-
-/// Builder app — package creation and publishing UI.
-#[component]
-pub fn BuilderApp() -> Element {
-    rsx! {
-        div { class: "builder-placeholder",
-            h2 { "Builder" }
-            p { "Package builder coming soon." }
-        }
-    }
-}
+pub use controller::BuilderController;
+pub use model::{BuildPipeline, BuildStep, BuildStepKind, BuildStepStatus};
+pub use view::BuilderView;

@@ -6,9 +6,16 @@
 #![allow(clippy::needless_pass_by_value)]
 #![allow(clippy::return_self_not_must_use)]
 #![allow(clippy::struct_excessive_bools)]
-pub mod app;
-pub mod model;
-mod pipeline_editor;
-mod templates;
+#![allow(clippy::needless_for_each)]
+#![allow(clippy::missing_panics_doc)]
 
-pub use app::TasksApp;
+pub mod cli;
+pub mod controller;
+pub mod grpc;
+pub mod model;
+pub mod rest;
+pub mod view;
+
+pub use controller::TaskController;
+pub use model::{TaskPipeline, TasksConfig};
+pub use view::{CreateTaskView, TaskDetailView, TasksView};

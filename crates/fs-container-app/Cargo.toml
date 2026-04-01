@@ -10,20 +10,40 @@ name = "fs_container_app"
 path = "src/lib.rs"
 
 [[bin]]
-name = "fs-container"
+name = "fs-container-app"
 path = "src/main.rs"
 
-[features]
-default  = ["desktop"]
-desktop  = ["dioxus/desktop", "fs-components/desktop"]
-web      = ["dioxus/web",     "fs-components/web"]
-
 [dependencies]
-fs-components = { workspace = true }
-fs-container  = { workspace = true }
-fs-error      = { workspace = true }
-fs-i18n       = { workspace = true }
-dioxus         = { workspace = true }
-serde          = { workspace = true }
-toml           = { workspace = true }
-tokio          = { workspace = true }
+fs-render    = { path = "../.././../fs-render" }
+fs-container = { workspace = true }
+fs-error     = { workspace = true }
+fs-i18n      = { workspace = true }
+serde        = { workspace = true }
+tokio        = { workspace = true }
+
+async-trait        = "0.1"
+thiserror          = "2"
+tracing            = "0.1"
+
+# gRPC
+tonic = "0.12"
+prost = "0.13"
+
+# REST + OpenAPI
+axum              = "0.7"
+utoipa            = { version = "5", features = ["axum_extras"] }
+utoipa-swagger-ui = { version = "8", features = ["axum"] }
+tower-http        = { version = "0.6", features = ["trace"] }
+
+# CLI
+clap = { version = "4", features = ["derive", "env"] }
+
+# Logging
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[build-dependencies]
+tonic-build         = "0.12"
+protoc-bin-vendored = "3"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }
