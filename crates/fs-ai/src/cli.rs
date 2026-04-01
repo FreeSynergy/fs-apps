@@ -4,7 +4,11 @@ use clap::{Parser, Subcommand};
 
 /// `FreeSynergy` AI assistant — manage the local LLM engine.
 #[derive(Parser)]
-#[command(name = "fs-ai", version, about = "FreeSynergy AI assistant daemon and CLI")]
+#[command(
+    name = "fs-ai",
+    version,
+    about = "FreeSynergy AI assistant daemon and CLI"
+)]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Command,

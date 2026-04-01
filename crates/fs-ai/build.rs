@@ -3,6 +3,6 @@ fn main() {
     tonic_build::configure()
         .build_server(true)
         .build_client(false)
-        .compile_protos(&["proto/ai.proto"], &["proto"])
+        .compile_protos(&["proto/ai_app.proto"], &["proto"])
         .unwrap_or_else(|e| panic!("tonic_build failed: {e}"));
 }

@@ -1,3 +1,13 @@
+//! `fs-ai` — FreeSynergy AI assistant.
+//!
+//! Facade Pattern: [`AiController`] wraps `fs-manager-ai` (LLM engine management).
+//!
+//! - [`AiController`] — start/stop/status (knows only `AiEngine` trait)
+//! - [`AiView`] — `FsView` impl (in `view.rs`, only file importing fs-render)
+//! - [`GrpcAiApp`] — gRPC service
+//! - REST router via [`rest::router`]
+//! - CLI via [`cli::Cli`]
+
 #![deny(clippy::all, clippy::pedantic, warnings)]
 #![allow(clippy::must_use_candidate)]
 #![allow(clippy::missing_errors_doc)]
@@ -5,68 +15,16 @@
 #![allow(clippy::ignored_unit_patterns)]
 #![allow(clippy::needless_pass_by_value)]
 #![allow(clippy::return_self_not_must_use)]
-#![allow(clippy::struct_excessive_bools)]
-pub mod app;
+#![allow(clippy::missing_panics_doc)]
+#![allow(clippy::needless_for_each)]
 
-pub use app::AiManagerApp;
+pub mod cli;
+pub mod controller;
+pub mod grpc;
+pub mod model;
+pub mod rest;
+pub mod view;
 
-const I18N_SNIPPETS: &[(&str, &str)] = &[
-    ("en", include_str!("../assets/i18n/en.toml")),
-    ("de", include_str!("../assets/i18n/de.toml")),
-];
-
-/// i18n plugin for fs-ai (`ai.*` keys). Pass to [`fs_i18n::init_with_plugins`].
-pub struct I18nPlugin;
-
-impl fs_i18n::SnippetPlugin for I18nPlugin {
-    fn name(&self) -> &'static str {
-        "fs-ai"
-    }
-    fn snippets(&self) -> &[(&str, &str)] {
-        I18N_SNIPPETS
-    }
-}
-
-// ── AiStatus ─────────────────────────────────────────────────────────────────
-
-use fs_manager_ai::{AiEngine, LlmConfig, LlmEngine, LlmModel};
-
-pub struct AiStatus;
-
-impl AiStatus {
-    fn engine() -> LlmEngine {
-        LlmEngine::new(
-            LlmConfig {
-                model: LlmModel::Qwen3_4B,
-                ..LlmConfig::default()
-            },
-            LlmEngine::default_binary(),
-            LlmEngine::default_data_dir(),
-        )
-    }
-
-    /// Returns `true` if the LLM engine binary is installed.
-    pub fn is_installed() -> bool {
-        Self::engine().is_installed()
-    }
-
-    /// Returns the OpenAI-compatible API base URL if the engine is running,
-    /// e.g. `"http://127.0.0.1:1234/v1"`.
-    pub fn api_url() -> Option<String> {
-        match Self::engine().status() {
-            fs_manager_ai::EngineStatus::Running { port } => {
-                Some(format!("http://127.0.0.1:{port}/v1"))
-            }
-            _ => None,
-        }
-    }
-}
-
-// ── Public shims ──────────────────────────────────────────────────────────────
-
-pub fn is_ai_installed() -> bool {
-    AiStatus::is_installed()
-}
-pub fn ai_api_url() -> Option<String> {
-    AiStatus::api_url()
-}
+pub use controller::AiController;
+pub use model::{AiModel, KnownModel};
+pub use view::AiView;

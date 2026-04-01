@@ -52,9 +52,8 @@ impl AiController {
         );
         engine.start().map_err(|e| e.to_string())?;
 
-        let port = match engine.status() {
-            EngineStatus::Running { port } => port,
-            _ => return Err("engine did not start".into()),
+        let EngineStatus::Running { port } = engine.status() else {
+            return Err("engine did not start".into());
         };
 
         let mut state = self.state.lock().unwrap();
@@ -66,10 +65,7 @@ impl AiController {
     /// Stop the LLM engine.
     pub fn stop(&self) -> Result<(), String> {
         let snapshot = self.snapshot();
-        let model_id = snapshot
-            .active_model
-            .as_deref()
-            .ok_or("no active model")?;
+        let model_id = snapshot.active_model.as_deref().ok_or("no active model")?;
 
         let llm_model = Self::model_from_id(model_id)?;
         let config = LlmConfig {

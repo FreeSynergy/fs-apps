@@ -1944,6 +1944,7 @@ dependencies = [
  "dioxus",
  "fs-i18n",
  "fs-manager-ai",
+ "fs-render",
  "prost",
  "protoc-bin-vendored",
  "serde",

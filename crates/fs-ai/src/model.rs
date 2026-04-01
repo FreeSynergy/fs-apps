@@ -26,8 +26,7 @@ impl AiModel {
     /// OpenAI-compatible API base URL, if the engine is running.
     #[must_use]
     pub fn api_url(&self) -> Option<String> {
-        self.port
-            .map(|p| format!("http://127.0.0.1:{p}/v1"))
+        self.port.map(|p| format!("http://127.0.0.1:{p}/v1"))
     }
 
     pub fn set_running(&mut self, port: u16) {
@@ -55,9 +54,18 @@ pub struct KnownModel {
 impl KnownModel {
     pub fn all() -> Vec<Self> {
         vec![
-            Self { id: "qwen3-4b".into(), name: "Qwen 3 4B".into() },
-            Self { id: "qwen3-8b".into(), name: "Qwen 3 8B".into() },
-            Self { id: "qwen2.5-coder-7b".into(), name: "Qwen 2.5 Coder 7B".into() },
+            Self {
+                id: "qwen3-4b".into(),
+                name: "Qwen 3 4B".into(),
+            },
+            Self {
+                id: "qwen3-8b".into(),
+                name: "Qwen 3 8B".into(),
+            },
+            Self {
+                id: "qwen2.5-coder-7b".into(),
+                name: "Qwen 2.5 Coder 7B".into(),
+            },
         ]
     }
 }

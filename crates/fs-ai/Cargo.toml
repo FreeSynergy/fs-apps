@@ -19,6 +19,7 @@ web     = ["dioxus/web"]
 
 [dependencies]
 fs-manager-ai = { workspace = true }
+fs-render     = { path = "../.././../fs-render" }
 fs-i18n       = { workspace = true }
 dioxus        = { workspace = true }
 

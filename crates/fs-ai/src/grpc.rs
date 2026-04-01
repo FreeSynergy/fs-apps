@@ -38,7 +38,10 @@ impl AiService for GrpcAiApp {
             .ctrl
             .list_models()
             .into_iter()
-            .map(|m| ModelProto { id: m.id, name: m.name })
+            .map(|m| ModelProto {
+                id: m.id,
+                name: m.name,
+            })
             .collect();
         Ok(Response::new(ListModelsResponse { models }))
     }
@@ -50,7 +53,7 @@ impl AiService for GrpcAiApp {
         let snap = self.ctrl.snapshot();
         Ok(Response::new(GetStatusResponse {
             running: snap.running,
-            port: snap.port.map(u32::from).unwrap_or(0),
+            port: snap.port.map_or(0, u32::from),
             api_url: snap.api_url().unwrap_or_default(),
         }))
     }
