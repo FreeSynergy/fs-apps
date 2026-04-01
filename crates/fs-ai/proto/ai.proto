@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package ai;
+
+service AiService {
+  // List available AI models.
+  rpc ListModels(ListModelsRequest) returns (ListModelsResponse);
+  // Get current engine status.
+  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
+  // Start the LLM engine.
+  rpc StartEngine(StartEngineRequest) returns (StartEngineResponse);
+  // Stop the LLM engine.
+  rpc StopEngine(StopEngineRequest) returns (StopEngineResponse);
+  // Service liveness check.
+  rpc Health(HealthRequest) returns (HealthResponse);
+}
+
+message ModelProto {
+  string id   = 1;
+  string name = 2;
+}
+
+message ListModelsRequest {}
+
+message ListModelsResponse {
+  repeated ModelProto models = 1;
+}
+
+message GetStatusRequest {}
+
+message GetStatusResponse {
+  bool   running = 1;
+  uint32 port    = 2;
+  string api_url = 3;
+}
+
+message StartEngineRequest {
+  string model_id = 1;
+}
+
+message StartEngineResponse {
+  bool ok      = 1;
+  string error = 2;
+}
+
+message StopEngineRequest {}
+
+message StopEngineResponse {
+  bool ok = 1;
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  bool   ok      = 1;
+  string version = 2;
+}

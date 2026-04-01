@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package lens;
+
+service LensService {
+  // List all saved lenses.
+  rpc ListLenses(ListLensesRequest) returns (ListLensesResponse);
+  // Create a new lens.
+  rpc CreateLens(CreateLensRequest) returns (CreateLensResponse);
+  // Delete a lens by id.
+  rpc DeleteLens(DeleteLensRequest) returns (DeleteLensResponse);
+  // Run a query through a lens.
+  rpc QueryLens(QueryLensRequest) returns (QueryLensResponse);
+  // Service liveness check.
+  rpc Health(HealthRequest) returns (HealthResponse);
+}
+
+message LensProto {
+  int64  id    = 1;
+  string name  = 2;
+  string query = 3;
+}
+
+message ListLensesRequest {}
+
+message ListLensesResponse {
+  repeated LensProto lenses = 1;
+}
+
+message CreateLensRequest {
+  string name  = 1;
+  string query = 2;
+}
+
+message CreateLensResponse {
+  LensProto lens = 1;
+}
+
+message DeleteLensRequest {
+  int64 id = 1;
+}
+
+message DeleteLensResponse {
+  bool ok = 1;
+}
+
+message QueryLensRequest {
+  int64  lens_id = 1;
+  string query   = 2;
+}
+
+message QueryLensResponse {
+  repeated string results = 1;
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  bool   ok      = 1;
+  string version = 2;
+}

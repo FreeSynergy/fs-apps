@@ -1938,9 +1938,25 @@ dependencies = [
 name = "fs-ai"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
+ "axum 0.7.9",
+ "clap",
  "dioxus",
  "fs-i18n",
  "fs-manager-ai",
+ "prost",
+ "protoc-bin-vendored",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tonic",
+ "tonic-build",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+ "utoipa",
+ "utoipa-swagger-ui",
 ]
 
 [[package]]
@@ -2144,13 +2160,25 @@ dependencies = [
 name = "fs-lenses"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
+ "axum 0.7.9",
  "chrono",
- "dioxus",
- "fs-components",
+ "clap",
+ "fs-error",
  "fs-i18n",
- "reqwest 0.13.2",
+ "fs-render",
+ "prost",
+ "protoc-bin-vendored",
  "serde",
- "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tonic",
+ "tonic-build",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+ "utoipa",
+ "utoipa-swagger-ui",
 ]
 
 [[package]]

@@ -1,8 +1,8 @@
-// Lens query engine — queries the bus for data matching a lens's search term.
+// query.rs — Lens query engine.
 //
-// Phase L2 implementation: publishes a `lens.query` event to the bus and
-// collects responses from services. For the current phase, we produce
-// mock/stub results until real bus routing is wired up.
+// Queries the bus for data matching a lens's search term.
+// Current implementation returns demo items; real bus integration
+// will be wired when fs-bus gRPC client is available.
 
 use crate::model::{Lens, LensItem, LensRole};
 
@@ -11,43 +11,14 @@ use crate::model::{Lens, LensItem, LensRole};
 pub struct LensQueryEngine;
 
 impl LensQueryEngine {
-    /// Query all services for data matching `lens.query` via the bus.
+    /// Return demo items for a lens query.
     ///
-    /// Returns updated items. If the bus is unreachable, returns empty.
-    pub async fn refresh_lens(&self, lens: &Lens) -> Vec<LensItem> {
-        if let Ok(items) = self.query_via_bus(&lens.query).await {
-            return items;
-        }
+    /// Real implementation will publish to the bus and collect responses.
+    pub fn refresh_lens(&self, lens: &Lens) -> Vec<LensItem> {
         Self::demo_items(&lens.query)
     }
 
-    async fn query_via_bus(&self, query: &str) -> Result<Vec<LensItem>, String> {
-        let client = reqwest::Client::builder()
-            .timeout(std::time::Duration::from_secs(3))
-            .build()
-            .map_err(|e| e.to_string())?;
-
-        let resp = client
-            .post("http://127.0.0.1:8081/api/bus/publish")
-            .json(&serde_json::json!({
-                "topic":   "lens.query",
-                "source":  "fs-lenses",
-                "payload": { "query": query }
-            }))
-            .send()
-            .await
-            .map_err(|e| e.to_string())?;
-
-        if !resp.status().is_success() {
-            return Err(format!("bus returned {}", resp.status()));
-        }
-
-        // In a real implementation, we'd collect async responses from services.
-        // For now, return empty (services haven't implemented lens.query handling yet).
-        Ok(Vec::new())
-    }
-
-    /// Demonstration items shown when the bus is not reachable.
+    /// Demonstration items shown before real bus routing is wired up.
     fn demo_items(query: &str) -> Vec<LensItem> {
         let q = query.to_string();
         vec![
@@ -76,5 +47,31 @@ impl LensQueryEngine {
                 source: "vikunja".into(),
             },
         ]
+    }
+}
+
+// ── Tests ─────────────────────────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::model::Lens;
+
+    #[test]
+    fn refresh_returns_demo_items() {
+        let engine = LensQueryEngine;
+        let lens = Lens::new("test", "rust");
+        let items = engine.refresh_lens(&lens);
+        assert!(!items.is_empty());
+    }
+
+    #[test]
+    fn demo_items_include_all_roles() {
+        let items = LensQueryEngine::demo_items("alpha");
+        let roles: Vec<_> = items.iter().map(|i| i.role.id()).collect();
+        assert!(roles.contains(&"wiki".to_string()));
+        assert!(roles.contains(&"chat".to_string()));
+        assert!(roles.contains(&"git".to_string()));
+        assert!(roles.contains(&"tasks".to_string()));
     }
 }

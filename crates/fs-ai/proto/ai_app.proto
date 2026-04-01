@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package ai_app;
+
+service AiAppService {
+  // Ask the AI a question.
+  rpc Ask(AskRequest) returns (AskResponse);
+  // List available AI models.
+  rpc Models(ModelsRequest) returns (ModelsResponse);
+  // Service liveness check.
+  rpc Health(HealthRequest) returns (HealthResponse);
+}
+
+message AskRequest {
+  string prompt = 1;
+}
+
+message AskResponse {
+  string answer = 1;
+}
+
+message ModelsRequest {}
+
+message ModelProto {
+  string id   = 1;
+  string name = 2;
+}
+
+message ModelsResponse {
+  repeated ModelProto models = 1;
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  bool   ok      = 1;
+  string version = 2;
+}

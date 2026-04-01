@@ -7,7 +7,7 @@
 use serde::{Deserialize, Serialize};
 
 /// The service role a lens item was sourced from.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, utoipa::ToSchema)]
 pub enum LensRole {
     Wiki,
     Chat,
@@ -61,7 +61,7 @@ impl LensRole {
 }
 
 /// A single result item within a lens.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct LensItem {
     /// The service role this result came from.
     pub role: LensRole,
@@ -74,7 +74,7 @@ pub struct LensItem {
 }
 
 /// A saved lens (search config + cached results).
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct Lens {
     /// Unique identifier (timestamp-based).
     pub id: i64,
