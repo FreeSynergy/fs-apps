@@ -10,7 +10,7 @@ name = "fs_container_app"
 path = "src/lib.rs"
 
 [[bin]]
-name = "fs-container-app"
+name = "fs-container"
 path = "src/main.rs"
 
 [features]

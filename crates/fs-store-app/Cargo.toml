@@ -10,7 +10,7 @@ name = "fs_store_app"
 path = "src/lib.rs"
 
 [[bin]]
-name = "fs-store-app"
+name = "fs-store"
 path = "src/main.rs"
 
 [features]

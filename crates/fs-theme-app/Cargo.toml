@@ -10,7 +10,7 @@ name = "fs_theme_app"
 path = "src/lib.rs"
 
 [[bin]]
-name = "fs-theme-app"
+name = "fs-theme"
 path = "src/main.rs"
 
 [features]
